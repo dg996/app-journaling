@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journaling App - Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f8f8f6 0%, #fcfcfa 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: #fcfcfa;
+            border-radius: 50px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            position: relative;
+            border: 12px solid #1f1f1f;
+        }
+
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .time {
+            color: #282828;
+        }
+
+        .indicators {
+            color: #282828;
+        }
+
+        .app-content {
+            height: calc(100% - 44px);
+            background: #fcfcfa;
+            overflow-y: auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            padding: 40px 0 30px 0;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 300;
+            color: #282828;
+            font-family: Georgia, serif;
+            margin-bottom: 8px;
+        }
+
+        .header .date {
+            font-size: 14px;
+            color: #787878;
+            font-weight: 300;
+        }
+
+        .journals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding-bottom: 100px;
+        }
+
+        .journal-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .journal-card:hover {
+            transform: scale(1.02);
+        }
+
+        .journal-cover {
+            width: 100%;
+            aspect-ratio: 0.75;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .journal-cover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cover-beige { background: rgb(245, 240, 235); }
+        .cover-sage { background: rgb(220, 230, 220); }
+        .cover-lavender { background: rgb(230, 225, 240); }
+        .cover-rose { background: rgb(235, 220, 225); }
+        .cover-blue { background: rgb(225, 235, 245); }
+
+        .journal-info h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #282828;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .journal-info p {
+            font-size: 13px;
+            color: #787878;
+            font-weight: 300;
+        }
+
+        .fab {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #3c3c3c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .fab svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: #fcfcfa;
+            width: 350px;
+            max-height: 90vh;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 500;
+            color: #282828;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #787878;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .preview-cover {
+            width: 200px;
+            height: 260px;
+            margin: 0 auto 30px;
+            border-radius: 16px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .preview-cover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 70%);
+        }
+
+        .preview-title {
+            font-size: 22px;
+            font-family: Georgia, serif;
+            color: #282828;
+            font-weight: 400;
+            z-index: 1;
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: 500;
+            color: #282828;
+            margin-bottom: 12px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #dcdcdc;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .color-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #3c3c3c;
+        }
+
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #3c3c3c;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .create-btn {
+            width: 100%;
+            padding: 16px;
+            background: #3c3c3c;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .create-btn:hover {
+            background: #2c2c2c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .create-btn:disabled {
+            background: #dcdcdc;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="status-bar">
+            <span class="time">9:41</span>
+            <span class="indicators">📶 📡 🔋</span>
+        </div>
+        
+        <div class="app-content">
+            <div class="header">
+                <h1>I Miei Diari</h1>
+                <p class="date">sabato, 25 ottobre 2025</p>
+            </div>
+
+            <div class="journals-grid" id="journalsGrid">
+                <div class="journal-card">
+                    <div class="journal-cover cover-beige"></div>
+                    <div class="journal-info">
+                        <h3>Il Mio Primo Diario</h3>
+                        <p>0 pagine</p>
+                    </div>
+                </div>
+
+                <div class="journal-card">
+                    <div class="journal-cover cover-sage"></div>
+                    <div class="journal-info">
+                        <h3>Viaggi 2025</h3>
+                        <p>0 pagine</p>
+                    </div>
+                </div>
+
+                <div class="journal-card">
+                    <div class="journal-cover cover-lavender"></div>
+                    <div class="journal-info">
+                        <h3>Ricordi Preziosi</h3>
+                        <p>0 pagine</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fab" id="fabBtn">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nuovo Diario</h2>
+                <button class="close-btn" id="closeBtn">Annulla</button>
+            </div>
+
+            <div class="preview-cover" id="previewCover">
+                <span class="preview-title" id="previewTitle">Anteprima</span>
+            </div>
+
+            <div class="form-group">
+                <label>Titolo del Diario</label>
+                <input type="text" id="titleInput" placeholder="Es. Il mio viaggio..." maxlength="50">
+            </div>
+
+            <div class="form-group">
+                <label>Colore Copertina</label>
+                <div class="color-picker">
+                    <div class="color-option cover-beige selected" data-color="beige"></div>
+                    <div class="color-option cover-sage" data-color="sage"></div>
+                    <div class="color-option cover-rose" data-color="rose"></div>
+                    <div class="color-option cover-lavender" data-color="lavender"></div>
+                    <div class="color-option cover-blue" data-color="blue"></div>
+                </div>
+            </div>
+
+            <button class="create-btn" id="createBtn" disabled>Crea</button>
+        </div>
+    </div>
+
+    <script>
+        const fabBtn = document.getElementById('fabBtn');
+        const modal = document.getElementById('modal');
+        const closeBtn = document.getElementById('closeBtn');
+        const titleInput = document.getElementById('titleInput');
+        const previewTitle = document.getElementById('previewTitle');
+        const previewCover = document.getElementById('previewCover');
+        const createBtn = document.getElementById('createBtn');
+        const colorOptions = document.querySelectorAll('.color-option');
+        let selectedColor = 'beige';
+
+        // Open modal
+        fabBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+
+        // Close modal
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            resetForm();
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                resetForm();
+            }
+        });
+
+        // Update preview
+        titleInput.addEventListener('input', (e) => {
+            const value = e.target.value.trim();
+            previewTitle.textContent = value || 'Anteprima';
+            createBtn.disabled = !value;
+        });
+
+        // Color selection
+        colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                colorOptions.forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedColor = option.dataset.color;
+                
+                // Update preview cover color
+                previewCover.className = 'preview-cover cover-' + selectedColor;
+            });
+        });
+
+        // Create journal
+        createBtn.addEventListener('click', () => {
+            const title = titleInput.value.trim();
+            if (!title) return;
+
+            // Add to grid
+            const journalsGrid = document.getElementById('journalsGrid');
+            const newCard = document.createElement('div');
+            newCard.className = 'journal-card';
+            newCard.innerHTML = `
+                <div class="journal-cover cover-${selectedColor}"></div>
+                <div class="journal-info">
+                    <h3>${title}</h3>
+                    <p>0 pagine</p>
+                </div>
+            `;
+            journalsGrid.appendChild(newCard);
+
+            // Close modal and reset
+            modal.classList.remove('active');
+            resetForm();
+        });
+
+        function resetForm() {
+            titleInput.value = '';
+            previewTitle.textContent = 'Anteprima';
+            createBtn.disabled = true;
+            colorOptions.forEach(o => o.classList.remove('selected'));
+            colorOptions[0].classList.add('selected');
+            selectedColor = 'beige';
+            previewCover.className = 'preview-cover cover-beige';
+        }
+    </script>
+</body>
+</html>
+

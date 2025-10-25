@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accesso Mobile - Journaling App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .links {
+            margin-top: 40px;
+        }
+
+        .link-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .link-box h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .link-box a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .link-box a:hover {
+            background: rgba(0, 0, 0, 0.4);
+            transform: scale(1.05);
+        }
+
+        .instructions {
+            margin-top: 40px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .instructions h3 {
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .emoji {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .warning {
+            background: rgba(255, 200, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji">📱</div>
+        <h1>Testa l'App sul Tuo Cellulare!</h1>
+        <p>Scansiona il QR code o usa uno dei link qui sotto per vedere l'anteprima della tua app Journaling sul cellulare.</p>
+
+        <!-- QR Code -->
+        <div class="qr-container">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=http://192.168.1.13:8080/preview_full.html" 
+                 alt="QR Code" 
+                 width="250" 
+                 height="250">
+        </div>
+
+        <div class="warning">
+            ⚠️ <strong>Importante:</strong> Il tuo cellulare deve essere connesso alla stessa rete WiFi del tuo Mac!
+        </div>
+
+        <!-- Links -->
+        <div class="links">
+            <div class="link-box">
+                <h3>🏠 Preview Home + Flow Completo</h3>
+                <a href="http://192.168.1.13:8080/preview_full.html" target="_blank">
+                    http://192.168.1.13:8080/preview_full.html
+                </a>
+            </div>
+
+            <div class="link-box">
+                <h3>📖 Preview Home Semplice</h3>
+                <a href="http://192.168.1.13:8080/preview.html" target="_blank">
+                    http://192.168.1.13:8080/preview.html
+                </a>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>📋 Come Testare:</h3>
+            <ol>
+                <li><strong>Metodo 1 (QR Code):</strong> Apri la fotocamera del tuo iPhone e punta sul QR code sopra. Tocca il banner che appare.</li>
+                <li><strong>Metodo 2 (Link Diretto):</strong> Apri Safari sul tuo cellulare e digita uno degli URL sopra.</li>
+                <li><strong>Assicurati:</strong> Sia il Mac che il cellulare siano sulla stessa rete WiFi (es. stessa rete di casa).</li>
+                <li><strong>Interagisci:</strong> Prova a creare un diario, aggiungi pagine, testa tutte le funzionalità!</li>
+            </ol>
+        </div>
+
+        <p style="margin-top: 30px; font-size: 14px; opacity: 0.7;">
+            Il server locale è attivo sulla porta 8080 del tuo Mac
+        </p>
+    </div>
+</body>
+</html>
+
