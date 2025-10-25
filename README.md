@@ -1,6 +1,12 @@
-# 📖 Journaling - App iOS per Diari Personali
+# 📖 Journaling - App iOS per Crescita Personale e Gratitudine
 
-Un'elegante applicazione iOS per creare e gestire diari personali con foto, sticker, cornici e molto altro.
+[![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
+[![Platform](https://img.shields.io/badge/platform-iOS%2017.0+-lightgrey.svg)](https://developer.apple.com/ios/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Un'elegante applicazione iOS per **journaling, gratitudine, mood tracking e crescita personale**. Più di un semplice diario: uno strumento completo per il benessere mentale e l'auto-riflessione.
+
+## 🌟 **Repository: [github.com/dg996/app-journaling](https://github.com/dg996/app-journaling)**
 
 ## ✨ Caratteristiche
 
