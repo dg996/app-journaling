@@ -700,35 +700,7 @@
                         <div class="content-title" id="contentTitle">I Miei Journals</div>
                     </div>
                     <div class="content-body" id="contentBody">
-                        <!-- Background decorativo -->
-                        <div class="home-background"></div>
-                        
-                        <!-- Home Content -->
-                        <div class="journals-grid" style="position: relative; z-index: 1;">
-                            <div class="journal-card" onclick="openJournalDetail('Il Mio Primo Diario', 'beige', 3)">
-                                <div class="journal-cover cover-beige"></div>
-                                <div class="journal-info">
-                                    <h3>Il Mio Primo Diario</h3>
-                                    <p>3 pagine</p>
-                                </div>
-                            </div>
-
-                            <div class="journal-card" onclick="openJournalDetail('Viaggi 2025', 'sage', 0)">
-                                <div class="journal-cover cover-sage"></div>
-                                <div class="journal-info">
-                                    <h3>Viaggi 2025</h3>
-                                    <p>0 pagine</p>
-                                </div>
-                            </div>
-
-                            <div class="journal-card" onclick="openJournalDetail('Ricordi Preziosi', 'lavender', 1)">
-                                <div class="journal-cover cover-lavender"></div>
-                                <div class="journal-info">
-                                    <h3>Ricordi Preziosi</h3>
-                                    <p>1 pagina</p>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Content will be loaded dynamically -->
                     </div>
                 </div>
             </div>
@@ -775,9 +747,14 @@
             contentArea.classList.add('bg-' + selectedBg);
         }
 
-        // Initialize with bookshelf background
+        // Initialize with bookshelf background and home content
         document.addEventListener('DOMContentLoaded', function() {
             changeBackground();
+            // Load home content dynamically
+            const contentBody = document.getElementById('contentBody');
+            if (contentBody && !contentBody.innerHTML.trim()) {
+                contentBody.innerHTML = getHomeContent();
+            }
         });
 
         // Background Picker in Settings
