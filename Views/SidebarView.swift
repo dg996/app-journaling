@@ -53,6 +53,7 @@ struct SidebarView: View {
 
 enum NavigationSection: String, CaseIterable {
     case home = "Home"
+    case settings = "Impostazioni"
     // Temporaneamente nascosti - da implementare
     // case moodTracker = "Mood Tracker"
     // case gratitude = "Gratitudine"
@@ -60,24 +61,11 @@ enum NavigationSection: String, CaseIterable {
     // case habits = "Abitudini"
     // case analytics = "Statistiche"
     // case templates = "Template"
-    // case settings = "Impostazioni"
     
     var icon: String {
         switch self {
         case .home:
             return "book.closed.fill"
-        case .moodTracker:
-            return "face.smiling.fill"
-        case .gratitude:
-            return "heart.fill"
-        case .prompts:
-            return "lightbulb.fill"
-        case .habits:
-            return "checkmark.circle.fill"
-        case .analytics:
-            return "chart.bar.fill"
-        case .templates:
-            return "square.grid.2x2.fill"
         case .settings:
             return "gearshape.fill"
         }
@@ -87,20 +75,17 @@ enum NavigationSection: String, CaseIterable {
         switch self {
         case .home:
             return .charcoalGray
-        case .moodTracker:
-            return Color(red: 1.0, green: 0.8, blue: 0.0)
-        case .gratitude:
-            return .dustyRose
-        case .prompts:
-            return .softLavender
-        case .habits:
-            return .softSage
-        case .analytics:
-            return .paleBlue
-        case .templates:
-            return .softBeige
         case .settings:
             return .textSecondary
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .home:
+            return "Home"
+        case .settings:
+            return "Impostazioni"
         }
     }
 }
@@ -259,8 +244,14 @@ struct MainContentView: View {
                 Color.backgroundPrimary
                     .ignoresSafeArea()
                 
-                // Solo Home per ora
-                HomeContentView()
+                Group {
+                    switch selectedSection {
+                    case .home:
+                        HomeContentView()
+                    case .settings:
+                        SettingsContentView()
+                    }
+                }
             }
         }
         .navigationViewStyle(.columns)

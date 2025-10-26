@@ -651,10 +651,16 @@
                     </div>
 
                     <div class="sidebar-menu">
-                        <div class="menu-item active" style="--item-color: 60, 60, 60;">
+                        <div class="menu-item active" onclick="switchSection('home', this)" style="--item-color: 60, 60, 60;">
                             <div class="menu-icon">📚</div>
                             <div class="menu-label">Home</div>
                             <div class="menu-indicator" style="background: rgb(60, 60, 60);"></div>
+                        </div>
+
+                        <div class="menu-item" onclick="switchSection('settings', this)" style="--item-color: 120, 120, 120;">
+                            <div class="menu-icon">⚙️</div>
+                            <div class="menu-label">Impostazioni</div>
+                            <div class="menu-indicator" style="background: rgb(120, 120, 120);"></div>
                         </div>
 
                         <!-- Altre sezioni temporaneamente nascoste -->
@@ -991,10 +997,24 @@
             }
         };
 
-        // Solo Home disponibile per ora
         function switchSection(sectionKey, element) {
-            // Home è l'unica sezione attiva
-            return;
+            // Update menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            // Close sidebar after selection (mobile behavior)
+            toggleSidebar();
+
+            // Update content
+            const section = sections[sectionKey];
+            if (!section) return;
+            
+            document.getElementById('contentTitle').textContent = section.title;
+            
+            const contentBody = document.getElementById('contentBody');
+            contentBody.innerHTML = section.content || '';
         }
     </script>
 </body>
