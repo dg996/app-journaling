@@ -1050,27 +1050,41 @@
             if (currentJournalPages.length === 0) {
                 // Show empty state
                 contentBody.innerHTML = `
-                    <div style="width: 100%; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #F5F5F5;">
-                        <div style="text-align: center; padding: 40px 20px;">
-                            <div style="font-size: 64px; margin-bottom: 20px;">✍️</div>
-                            <div style="font-size: 22px; font-weight: 600; color: #3C3C3C; margin-bottom: 12px;">
+                    <div style="width: 100%; height: calc(100vh - 60px); display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);">
+                        <div style="text-align: center; padding: 40px 20px; animation: fadeIn 0.5s ease;">
+                            <div style="font-size: 72px; margin-bottom: 24px; animation: bounce 2s ease-in-out infinite;">✍️</div>
+                            <div style="font-size: 24px; font-weight: 600; color: #3C3C3C; margin-bottom: 12px;">
                                 Inizia a Scrivere
                             </div>
-                            <div style="font-size: 15px; color: #787878; line-height: 1.6; max-width: 280px; margin: 0 auto 32px;">
+                            <div style="font-size: 16px; color: #787878; line-height: 1.8; max-width: 300px; margin: 0 auto 40px;">
                                 Questo diario è vuoto.<br>
-                                Tocca il pulsante + per creare la tua prima pagina
+                                Tocca il pulsante per creare la tua prima pagina!
                             </div>
+                            
+                            <!-- Add Page Button -->
+                            <button onclick="openEntryEditor('${journal.title}')" style="padding: 18px 40px; border-radius: 14px; background: #3C3C3C; color: white; border: none; font-size: 17px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.2); transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'">
+                                <span style="font-size: 20px;">+</span>
+                                Crea Prima Pagina
+                            </button>
                         </div>
-                        
-                        <!-- Add Page Button -->
-                        <button onclick="openEntryEditor('${journal.title}')" style="padding: 16px 32px; border-radius: 12px; background: #3C3C3C; color: white; border: none; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                            + Crea Prima Pagina
-                        </button>
                     </div>
+                    
+                    <style>
+                        @keyframes fadeIn {
+                            from { opacity: 0; transform: translateY(20px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+                        @keyframes bounce {
+                            0%, 100% { transform: translateY(0); }
+                            50% { transform: translateY(-10px); }
+                        }
+                    </style>
                 `;
+                // Don't call renderBookPages or setupSwipeListeners for empty journals!
                 return;
             }
             
+            // Journal has pages - show page viewer
             contentBody.innerHTML = `
                 <div style="width: 100%; height: 100vh; display: flex; flex-direction: column; background: #F5F5F5; overflow: hidden;">
                     <!-- Page Container - Full screen -->
@@ -1106,6 +1120,7 @@
                 </style>
             `;
             
+            // Only render and setup swipe for journals with pages
             renderBookPages();
             setupSwipeListeners();
         }
