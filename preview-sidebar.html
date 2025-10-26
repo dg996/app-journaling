@@ -754,24 +754,6 @@
             contentArea.classList.add('bg-' + selectedBg);
         }
 
-        // Initialize with bookshelf background and home content
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize background
-            const selector = document.getElementById('backgroundSelector');
-            if (selector) {
-                changeBackground();
-            }
-            
-            // ALWAYS load home content on startup
-            const contentBody = document.getElementById('contentBody');
-            if (contentBody) {
-                contentBody.innerHTML = getHomeContent();
-            }
-            
-            // Load journals from storage
-            loadJournalsFromStorage();
-        });
-
         // Background Picker in Settings
         function toggleBackgroundPicker() {
             const options = document.getElementById('backgroundOptions');
@@ -2065,6 +2047,32 @@
             if (stickerPicker && stickerPicker.style.display === 'block' && !stickerPicker.contains(e.target)) {
                 stickerPicker.style.display = 'none';
             }
+        });
+
+        // ===== INITIALIZATION - MUST BE AT THE END =====
+        // Initialize app when DOM is ready - AFTER all functions are defined!
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 App initialization started');
+            
+            // Initialize background
+            const selector = document.getElementById('backgroundSelector');
+            if (selector) {
+                changeBackground();
+                console.log('✅ Background initialized');
+            }
+            
+            // Load journals from storage
+            loadJournalsFromStorage();
+            console.log('✅ Journals loaded from storage');
+            
+            // ALWAYS load home content on startup
+            const contentBody = document.getElementById('contentBody');
+            if (contentBody) {
+                contentBody.innerHTML = getHomeContent();
+                console.log('✅ Home content loaded');
+            }
+            
+            console.log('🎉 App initialization complete!');
         });
     </script>
     
