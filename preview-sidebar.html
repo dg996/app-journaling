@@ -1088,8 +1088,8 @@
                         </svg>
                     </button>
                     
-                    <!-- Frame Selector Sheet - NOW ABSOLUTE TO CONTAINER -->
-                    <div id="frameSelector" style="position: absolute; bottom: -300px; left: 0; right: 0; height: 250px; background: white; border-radius: 24px 24px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.2); transition: bottom 0.3s ease; z-index: 200; padding: 24px;">
+                    <!-- Frame Selector Sheet - HIDDEN BY DEFAULT -->
+                    <div id="frameSelector" style="display: none; position: absolute; bottom: 0; left: 0; right: 0; height: 250px; background: white; border-radius: 24px 24px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.2); z-index: 200; padding: 24px; animation: slideUp 0.3s ease;">
                         <div style="width: 40px; height: 4px; background: #D0D0D0; border-radius: 2px; margin: 0 auto 24px;"></div>
                         
                         <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #3C3C3C;">Aggiungi Frame</h3>
@@ -1132,6 +1132,17 @@
                         .frame-option:hover {
                             border-color: #3C3C3C;
                             transform: translateY(-2px);
+                        }
+                        
+                        @keyframes slideUp {
+                            from {
+                                transform: translateY(100%);
+                                opacity: 0;
+                            }
+                            to {
+                                transform: translateY(0);
+                                opacity: 1;
+                            }
                         }
                     </style>
                 </div>
@@ -1590,10 +1601,10 @@
         function toggleFrameSelector() {
             const selector = document.getElementById('frameSelector');
             if (selector) {
-                if (selector.style.bottom === '0px') {
-                    selector.style.bottom = '-300px';
+                if (selector.style.display === 'none' || selector.style.display === '') {
+                    selector.style.display = 'block';
                 } else {
-                    selector.style.bottom = '0px';
+                    selector.style.display = 'none';
                 }
             }
         }
@@ -1744,8 +1755,8 @@
             const selector = document.getElementById('frameSelector');
             const addButton = e.target.closest('button[onclick="toggleFrameSelector()"]');
             
-            if (selector && selector.style.bottom === '0px' && !addButton && !selector.contains(e.target)) {
-                selector.style.bottom = '-300px';
+            if (selector && selector.style.display === 'block' && !addButton && !selector.contains(e.target)) {
+                selector.style.display = 'none';
             }
         });
     </script>
