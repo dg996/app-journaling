@@ -651,52 +651,20 @@
                     </div>
 
                     <div class="sidebar-menu">
-                        <div class="menu-item active" onclick="switchSection('home', this)" style="--item-color: 60, 60, 60;">
+                        <div class="menu-item active" style="--item-color: 60, 60, 60;">
                             <div class="menu-icon">📚</div>
                             <div class="menu-label">Home</div>
                             <div class="menu-indicator" style="background: rgb(60, 60, 60);"></div>
                         </div>
 
-                        <div class="menu-item" onclick="switchSection('mood', this)" style="--item-color: 255, 204, 0;">
-                            <div class="menu-icon">😊</div>
-                            <div class="menu-label">Mood Tracker</div>
-                            <div class="menu-indicator" style="background: rgb(255, 204, 0);"></div>
-                        </div>
-
-                        <div class="menu-item" onclick="switchSection('gratitude', this)" style="--item-color: 235, 220, 225;">
-                            <div class="menu-icon">❤️</div>
-                            <div class="menu-label">Gratitudine</div>
-                            <div class="menu-indicator" style="background: rgb(235, 220, 225);"></div>
-                        </div>
-
-                        <div class="menu-item" onclick="switchSection('prompts', this)" style="--item-color: 230, 225, 240;">
-                            <div class="menu-icon">💡</div>
-                            <div class="menu-label">Prompts</div>
-                            <div class="menu-indicator" style="background: rgb(230, 225, 240);"></div>
-                        </div>
-
-                        <div class="menu-item" onclick="switchSection('habits', this)" style="--item-color: 220, 230, 220;">
-                            <div class="menu-icon">✅</div>
-                            <div class="menu-label">Abitudini</div>
-                            <div class="menu-indicator" style="background: rgb(220, 230, 220);"></div>
-                        </div>
-
-                        <div class="menu-item" onclick="switchSection('analytics', this)" style="--item-color: 225, 235, 245;">
-                            <div class="menu-icon">📊</div>
-                            <div class="menu-label">Statistiche</div>
-                            <div class="menu-indicator" style="background: rgb(225, 235, 245);"></div>
-                        </div>
-
-                        <div class="menu-item" onclick="switchSection('templates', this)" style="--item-color: 245, 240, 235;">
-                            <div class="menu-icon">📋</div>
-                            <div class="menu-label">Template</div>
-                            <div class="menu-indicator" style="background: rgb(245, 240, 235);"></div>
-                        </div>
-
-                        <div class="menu-item" onclick="switchSection('settings', this)" style="--item-color: 120, 120, 120;">
-                            <div class="menu-icon">⚙️</div>
-                            <div class="menu-label">Impostazioni</div>
-                            <div class="menu-indicator" style="background: rgb(120, 120, 120);"></div>
+                        <!-- Altre sezioni temporaneamente nascoste -->
+                        <div style="padding: 40px 20px; text-align: center;">
+                            <div style="font-size: 32px; margin-bottom: 12px;">🚧</div>
+                            <div style="font-size: 14px; color: #787878; line-height: 1.6;">
+                                Altre sezioni in arrivo:<br>
+                                Mood Tracker, Gratitudine,<br>
+                                Prompts, Abitudini, Analytics
+                            </div>
                         </div>
                     </div>
 
@@ -772,15 +740,15 @@
 
         <!-- Info Panel -->
         <div class="info-panel">
-            <h3>✨ Sidebar Features</h3>
+            <h3>✨ App Status</h3>
             <ul>
-                <li>Design minimalista elegante</li>
-                <li>8 sezioni principali</li>
-                <li>Icone colorate distintive</li>
-                <li>Indicatore selezione visivo</li>
-                <li>Transizioni animate</li>
-                <li>Footer con profilo utente</li>
-                <li>Clicca le voci menu! →</li>
+                <li>Home completata</li>
+                <li>Sidebar navigation</li>
+                <li>5 sfondi personalizzabili</li>
+                <li>Journal creation & management</li>
+                <li>Entry editor funzionante</li>
+                <li>Design minimalista</li>
+                <li>Pronta per nuove features! 🚀</li>
             </ul>
         </div>
     </div>
@@ -885,42 +853,7 @@
                 `,
                 color: 'rgb(255, 204, 0)'
             },
-            mood: {
-                title: 'Mood Tracker',
-                icon: '😊',
-                subtitle: 'Traccia il tuo umore quotidiano',
-                color: 'rgb(255, 204, 0)'
-            },
-            gratitude: {
-                title: 'Gratitudine',
-                icon: '❤️',
-                subtitle: 'Coltiva gratitudine ogni giorno',
-                color: 'rgb(235, 220, 225)'
-            },
-            prompts: {
-                title: 'Journaling Prompts',
-                icon: '💡',
-                subtitle: '21 domande per la riflessione',
-                color: 'rgb(230, 225, 240)'
-            },
-            habits: {
-                title: 'Habit Tracker',
-                icon: '✅',
-                subtitle: 'Traccia le tue abitudini',
-                color: 'rgb(220, 230, 220)'
-            },
-            analytics: {
-                title: 'Statistiche',
-                icon: '📊',
-                subtitle: 'Insights sul tuo journaling',
-                color: 'rgb(225, 235, 245)'
-            },
-            templates: {
-                title: 'Template',
-                icon: '📋',
-                subtitle: '8 template per ogni esigenza',
-                color: 'rgb(245, 240, 235)'
-            },
+            // Altre sezioni temporaneamente rimosse
             settings: {
                 title: 'Impostazioni',
                 icon: '⚙️',
@@ -1058,36 +991,10 @@
             }
         };
 
+        // Solo Home disponibile per ora
         function switchSection(sectionKey, element) {
-            // Update menu items
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            element.classList.add('active');
-
-            // Close sidebar after selection (mobile behavior)
-            toggleSidebar();
-
-            // Update content
-            const section = sections[sectionKey];
-            document.getElementById('contentTitle').textContent = section.title;
-            
-            const contentBody = document.getElementById('contentBody');
-            
-            if (section.content) {
-                contentBody.innerHTML = section.content;
-            } else {
-                contentBody.innerHTML = `
-                    <div class="placeholder">
-                        <div class="placeholder-icon" style="background: ${section.color}20;">
-                            <span>${section.icon}</span>
-                        </div>
-                        <div class="placeholder-title">${section.title}</div>
-                        <div class="placeholder-subtitle">${section.subtitle}</div>
-                        <div class="placeholder-badge">🚧 In sviluppo</div>
-                    </div>
-                `;
-            }
+            // Home è l'unica sezione attiva
+            return;
         }
     </script>
 </body>

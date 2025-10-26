@@ -53,13 +53,14 @@ struct SidebarView: View {
 
 enum NavigationSection: String, CaseIterable {
     case home = "Home"
-    case moodTracker = "Mood Tracker"
-    case gratitude = "Gratitudine"
-    case prompts = "Prompts"
-    case habits = "Abitudini"
-    case analytics = "Statistiche"
-    case templates = "Template"
-    case settings = "Impostazioni"
+    // Temporaneamente nascosti - da implementare
+    // case moodTracker = "Mood Tracker"
+    // case gratitude = "Gratitudine"
+    // case prompts = "Prompts"
+    // case habits = "Abitudini"
+    // case analytics = "Statistiche"
+    // case templates = "Template"
+    // case settings = "Impostazioni"
     
     var icon: String {
         switch self {
@@ -258,26 +259,8 @@ struct MainContentView: View {
                 Color.backgroundPrimary
                     .ignoresSafeArea()
                 
-                Group {
-                    switch selectedSection {
-                    case .home:
-                        HomeContentView()
-                    case .moodTracker:
-                        MoodTrackerPlaceholder()
-                    case .gratitude:
-                        GratitudePlaceholder()
-                    case .prompts:
-                        PromptsPlaceholder()
-                    case .habits:
-                        HabitsPlaceholder()
-                    case .analytics:
-                        AnalyticsPlaceholder()
-                    case .templates:
-                        TemplatesPlaceholder()
-                    case .settings:
-                        SettingsContentView()
-                    }
-                }
+                // Solo Home per ora
+                HomeContentView()
             }
         }
         .navigationViewStyle(.columns)
