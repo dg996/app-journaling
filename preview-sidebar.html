@@ -1013,7 +1013,14 @@
             contentBody.innerHTML = section.content || '';
         }
 
-        // Open Journal Detail
+        // Journal Book Viewer State
+        let currentJournalPages = [];
+        let currentPageIndex = 0;
+        let isDoublePageView = true;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        // Open Journal Detail - Book View
         function openJournalDetail(title, color, entriesCount) {
             const contentBody = document.getElementById('contentBody');
             const contentTitle = document.getElementById('contentTitle');
@@ -1027,92 +1034,303 @@
                 <span>${title}</span>
             `;
             
-            const colorClass = `cover-${color}`;
+            // Generate journal pages with content
+            currentJournalPages = generateJournalPages(entriesCount, color);
+            currentPageIndex = 0;
             
             contentBody.innerHTML = `
-                <div style="padding: 30px 20px; max-width: 500px; margin: 0 auto;">
-                    <!-- Journal Cover Header -->
-                    <div style="text-align: center; margin-bottom: 40px;">
-                        <div class="journal-cover ${colorClass}" style="width: 160px; height: 200px; margin: 0 auto 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);"></div>
-                    </div>
-                    
-                    <!-- Stats -->
-                    <div style="display: flex; justify-content: space-around; margin-bottom: 40px; padding: 20px; background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; margin-bottom: 4px;">📄</div>
-                            <div style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin-bottom: 4px;">${entriesCount}</div>
-                            <div style="font-size: 13px; color: #787878;">Pagine</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; margin-bottom: 4px;">📸</div>
-                            <div style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin-bottom: 4px;">${entriesCount * 2}</div>
-                            <div style="font-size: 13px; color: #787878;">Foto</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; margin-bottom: 4px;">📅</div>
-                            <div style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin-bottom: 4px;">12</div>
-                            <div style="font-size: 13px; color: #787878;">Giorni</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Entries List -->
-                    <div style="margin-bottom: 100px;">
-                        <h3 style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin-bottom: 20px;">Le Tue Pagine</h3>
-                        
-                        ${entriesCount === 0 ? `
-                            <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                <div style="font-size: 48px; margin-bottom: 16px;">✍️</div>
-                                <div style="font-size: 18px; font-weight: 600; color: #787878; margin-bottom: 8px;">Inizia a Scrivere</div>
-                                <div style="font-size: 14px; color: #A8A8A8;">Tocca + per creare la tua prima pagina</div>
-                            </div>
-                        ` : generateEntries(entriesCount)}
-                    </div>
-                    
-                    <!-- Add Entry Button -->
-                    <div style="position: fixed; bottom: 80px; right: 40px; z-index: 10;">
-                        <button onclick="openEntryEditor('${title}')" style="width: 60px; height: 60px; border-radius: 50%; background: #3C3C3C; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-                            </svg>
+                <div style="width: 100%; height: 100vh; display: flex; flex-direction: column; background: #F5F5F5; overflow: hidden;">
+                    <!-- View Toggle -->
+                    <div style="padding: 16px; display: flex; justify-content: center; gap: 12px;">
+                        <button onclick="toggleBookView(false)" id="singleViewBtn" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #E0E0E0; background: white; color: #787878; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+                            📄 Pagina Singola
+                        </button>
+                        <button onclick="toggleBookView(true)" id="doubleViewBtn" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #3C3C3C; background: #3C3C3C; color: white; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+                            📖 Libro Aperto
                         </button>
                     </div>
+                    
+                    <!-- Book Container -->
+                    <div id="bookContainer" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; overflow: hidden;">
+                        <!-- Pages will be rendered here -->
+                    </div>
+                    
+                    <!-- Navigation Controls -->
+                    <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-top: 1px solid #E0E0E0;">
+                        <button onclick="previousPage()" id="prevBtn" style="padding: 12px 24px; border-radius: 12px; border: none; background: #3C3C3C; color: white; font-size: 14px; font-weight: 600; cursor: pointer; opacity: 0.5;">
+                            ‹ Indietro
+                        </button>
+                        
+                        <div id="pageIndicator" style="font-size: 14px; color: #787878; font-weight: 600;">
+                            1 di ${currentJournalPages.length}
+                        </div>
+                        
+                        <button onclick="nextPage()" id="nextBtn" style="padding: 12px 24px; border-radius: 12px; border: none; background: #3C3C3C; color: white; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            Avanti ›
+                        </button>
+                    </div>
+                    
+                    <!-- Add Page Button -->
+                    <button onclick="openEntryEditor('${title}')" style="position: fixed; bottom: 100px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: #3C3C3C; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 100;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            renderBookPages();
+            setupSwipeListeners();
+        }
+
+        // Generate journal pages with realistic content
+        function generateJournalPages(count, color) {
+            const pages = [];
+            const dates = ['26 Ottobre 2025', '25 Ottobre 2025', '24 Ottobre 2025', '23 Ottobre 2025', '22 Ottobre 2025'];
+            const texts = [
+                'Oggi è stata una giornata meravigliosa! Ho passato del tempo con gli amici e abbiamo fatto una passeggiata nel parco. Il sole splendeva e mi sono sentita così grata per questi momenti semplici ma preziosi.',
+                'Riflessioni sulla mia crescita personale. Sto imparando ad essere più paziente con me stesso e ad accettare che il progresso non è sempre lineare. Ogni piccolo passo conta.',
+                'Un momento di gratitudine per tutte le piccole cose che rendono speciale ogni giorno. La tazza di caffè al mattino, il sorriso di uno sconosciuto, il tramonto dalla finestra.',
+                'Oggi ho iniziato un nuovo progetto che mi entusiasma molto. Mi sento piena di energia e motivazione. Non vedo l\'ora di vedere dove mi porterà questo percorso!',
+                'Giornata tranquilla dedicata alla lettura e alla riflessione. A volte è importante rallentare e prendersi del tempo per se stessi.'
+            ];
+            
+            for (let i = 0; i < count; i++) {
+                pages.push({
+                    id: i,
+                    date: dates[i % dates.length],
+                    text: texts[i % texts.length],
+                    hasPhoto: i % 2 === 0,
+                    stickers: i % 3 === 0 ? ['⭐', '💖'] : i % 2 === 0 ? ['🌸'] : [],
+                    frame: i % 4 === 0 ? 'polaroid' : i % 3 === 0 ? 'vintage' : 'none',
+                    color: color
+                });
+            }
+            
+            return pages;
+        }
+
+        // Render book pages
+        function renderBookPages() {
+            const container = document.getElementById('bookContainer');
+            if (!container) return;
+            
+            const pagesHTML = [];
+            
+            if (isDoublePageView) {
+                // Double page view (book open)
+                const leftPage = currentJournalPages[currentPageIndex];
+                const rightPage = currentJournalPages[currentPageIndex + 1];
+                
+                if (leftPage) {
+                    pagesHTML.push(createPageHTML(leftPage, 'left'));
+                }
+                if (rightPage) {
+                    pagesHTML.push(createPageHTML(rightPage, 'right'));
+                }
+            } else {
+                // Single page view
+                const page = currentJournalPages[currentPageIndex];
+                if (page) {
+                    pagesHTML.push(createPageHTML(page, 'single'));
+                }
+            }
+            
+            container.innerHTML = `
+                <div style="display: flex; gap: ${isDoublePageView ? '0' : '20px'}; max-width: ${isDoublePageView ? '800px' : '400px'}; width: 100%; height: 100%; align-items: center; justify-content: center;">
+                    ${pagesHTML.join('')}
+                </div>
+            `;
+            
+            updateNavigationButtons();
+        }
+
+        // Create HTML for a single page
+        function createPageHTML(page, position) {
+            const frameStyles = {
+                'none': '',
+                'polaroid': 'border: 12px solid #F5F5DC; border-bottom: 40px solid #F5F5DC;',
+                'vintage': 'border: 4px solid #C9A580; box-shadow: inset 0 0 20px rgba(201, 165, 128, 0.3);',
+                'simple': 'border: 2px solid #3C3C3C;'
+            };
+            
+            const pageWidth = isDoublePageView ? '380px' : '100%';
+            const maxWidth = isDoublePageView ? '380px' : '400px';
+            
+            return `
+                <div style="
+                    width: ${pageWidth};
+                    max-width: ${maxWidth};
+                    height: 550px;
+                    background: white;
+                    box-shadow: ${position === 'left' ? '-2px 0 8px rgba(0,0,0,0.1), 2px 0 4px rgba(0,0,0,0.05)' : 
+                                position === 'right' ? '2px 0 8px rgba(0,0,0,0.1), -2px 0 4px rgba(0,0,0,0.05)' : 
+                                '0 4px 16px rgba(0,0,0,0.15)'};
+                    border-radius: ${position === 'left' ? '12px 0 0 12px' : 
+                                    position === 'right' ? '0 12px 12px 0' : 
+                                    '12px'};
+                    padding: 32px 24px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    position: relative;
+                    overflow: hidden;
+                    ${frameStyles[page.frame] || ''}
+                ">
+                    <!-- Date Header -->
+                    <div style="font-size: 12px; color: #A8A8A8; text-align: center; font-weight: 500; letter-spacing: 0.5px;">
+                        ${page.date}
+                    </div>
+                    
+                    <!-- Photo if present -->
+                    ${page.hasPhoto ? `
+                        <div style="width: 100%; height: 160px; background: linear-gradient(135deg, #E8DDD3 0%, #D4C4B8 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                            <div style="font-size: 48px; opacity: 0.6;">📸</div>
+                            ${page.stickers.length > 0 ? `
+                                <div style="position: absolute; top: 8px; right: 8px; font-size: 28px;">
+                                    ${page.stickers[0]}
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Text Content -->
+                    <div style="flex: 1; font-family: 'Georgia', serif; font-size: 14px; line-height: 1.8; color: #3C3C3C; text-align: justify; overflow: hidden;">
+                        ${page.text}
+                    </div>
+                    
+                    <!-- Stickers at bottom -->
+                    ${page.stickers.length > 1 ? `
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            ${page.stickers.slice(1).map(sticker => `
+                                <span style="font-size: 24px;">${sticker}</span>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Page Number -->
+                    <div style="text-align: center; font-size: 11px; color: #C8C8C8; margin-top: auto;">
+                        ${page.id + 1}
+                    </div>
+                    
+                    <!-- Binding shadow for book effect -->
+                    ${position === 'left' ? `
+                        <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(to left, rgba(0,0,0,0.1), transparent); pointer-events: none;"></div>
+                    ` : position === 'right' ? `
+                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(to right, rgba(0,0,0,0.1), transparent); pointer-events: none;"></div>
+                    ` : ''}
                 </div>
             `;
         }
 
-        function generateEntries(count) {
-            let html = '';
-            const dates = ['26 Ottobre 2025', '25 Ottobre 2025', '24 Ottobre 2025'];
-            const texts = [
-                'Oggi è stata una giornata meravigliosa! Ho passato del tempo con gli amici e abbiamo fatto una passeggiata...',
-                'Riflessioni sulla mia crescita personale. Sto imparando ad essere più paziente con me stesso...',
-                'Un momento di gratitudine per tutte le piccole cose che rendono speciale ogni giorno.'
-            ];
+        // Toggle between single and double page view
+        function toggleBookView(isDouble) {
+            isDoublePageView = isDouble;
             
-            for (let i = 0; i < count; i++) {
-                html += `
-                    <div onclick="openEntryEditor('Entry ${i+1}')" style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; display: flex; gap: 16px; align-items: center;">
-                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #E8DDD3 0%, #D4C4B8 100%); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 32px;">
-                            📸
-                        </div>
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="font-size: 13px; color: #787878; margin-bottom: 6px;">${dates[i % 3]}</div>
-                            <div style="font-size: 15px; color: #3C3C3C; margin-bottom: 8px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                                ${texts[i % 3]}
-                            </div>
-                            <div style="display: flex; gap: 12px; font-size: 12px; color: #787878;">
-                                <span>📷 2</span>
-                                <span>😊 1</span>
-                                <span>🖼️ Simple</span>
-                            </div>
-                        </div>
-                        <div style="font-size: 14px; color: #C8C8C8;">
-                            ›
-                        </div>
-                    </div>
-                `;
+            // Update button styles
+            const singleBtn = document.getElementById('singleViewBtn');
+            const doubleBtn = document.getElementById('doubleViewBtn');
+            
+            if (singleBtn && doubleBtn) {
+                if (isDouble) {
+                    singleBtn.style.background = 'white';
+                    singleBtn.style.color = '#787878';
+                    singleBtn.style.border = '1px solid #E0E0E0';
+                    doubleBtn.style.background = '#3C3C3C';
+                    doubleBtn.style.color = 'white';
+                    doubleBtn.style.border = '1px solid #3C3C3C';
+                } else {
+                    singleBtn.style.background = '#3C3C3C';
+                    singleBtn.style.color = 'white';
+                    singleBtn.style.border = '1px solid #3C3C3C';
+                    doubleBtn.style.background = 'white';
+                    doubleBtn.style.color = '#787878';
+                    doubleBtn.style.border = '1px solid #E0E0E0';
+                }
             }
-            return html;
+            
+            renderBookPages();
+        }
+
+        // Navigation functions
+        function nextPage() {
+            const increment = isDoublePageView ? 2 : 1;
+            if (currentPageIndex + increment < currentJournalPages.length) {
+                currentPageIndex += increment;
+                renderBookPages();
+            }
+        }
+
+        function previousPage() {
+            const decrement = isDoublePageView ? 2 : 1;
+            if (currentPageIndex - decrement >= 0) {
+                currentPageIndex -= decrement;
+                renderBookPages();
+            }
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const indicator = document.getElementById('pageIndicator');
+            
+            if (prevBtn) {
+                prevBtn.style.opacity = currentPageIndex > 0 ? '1' : '0.3';
+                prevBtn.style.cursor = currentPageIndex > 0 ? 'pointer' : 'not-allowed';
+            }
+            
+            const increment = isDoublePageView ? 2 : 1;
+            if (nextBtn) {
+                nextBtn.style.opacity = currentPageIndex + increment < currentJournalPages.length ? '1' : '0.3';
+                nextBtn.style.cursor = currentPageIndex + increment < currentJournalPages.length ? 'pointer' : 'not-allowed';
+            }
+            
+            if (indicator) {
+                const currentDisplay = isDoublePageView ? 
+                    `${currentPageIndex + 1}-${Math.min(currentPageIndex + 2, currentJournalPages.length)}` : 
+                    `${currentPageIndex + 1}`;
+                indicator.textContent = `${currentDisplay} di ${currentJournalPages.length}`;
+            }
+        }
+
+        // Setup swipe listeners
+        function setupSwipeListeners() {
+            const bookContainer = document.getElementById('bookContainer');
+            if (!bookContainer) return;
+            
+            bookContainer.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+            
+            bookContainer.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+            
+            // Mouse events for desktop testing
+            bookContainer.addEventListener('mousedown', (e) => {
+                touchStartX = e.screenX;
+            });
+            
+            bookContainer.addEventListener('mouseup', (e) => {
+                touchEndX = e.screenX;
+                handleSwipe();
+            });
+        }
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe left - next page
+                    nextPage();
+                } else {
+                    // Swipe right - previous page
+                    previousPage();
+                }
+            }
         }
 
         function backToHome() {
@@ -1121,6 +1339,10 @@
             
             contentTitle.textContent = 'I Miei Journals';
             contentBody.innerHTML = sections.home.content;
+            
+            // Reset journal state
+            currentJournalPages = [];
+            currentPageIndex = 0;
         }
 
         function openEntryEditor(title) {
