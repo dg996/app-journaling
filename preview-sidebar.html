@@ -729,9 +729,16 @@
             const backdrop = document.getElementById('backdrop');
             const hamburger = document.getElementById('hamburger');
             
+            if (!sidebar || !backdrop || !hamburger) {
+                console.error('Sidebar elements not found!', {sidebar, backdrop, hamburger});
+                return;
+            }
+            
             sidebar.classList.toggle('open');
             backdrop.classList.toggle('active');
             hamburger.classList.toggle('active');
+            
+            console.log('Sidebar toggled:', sidebar.classList.contains('open'));
         }
 
         // Change Background
@@ -976,23 +983,40 @@
         };
 
         function switchSection(sectionKey, element) {
+            console.log('switchSection called:', sectionKey);
+            
             // Update menu items
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
             });
-            element.classList.add('active');
+            if (element) {
+                element.classList.add('active');
+            }
 
             // Close sidebar after selection (mobile behavior)
             toggleSidebar();
 
             // Update content
             const section = sections[sectionKey];
-            if (!section) return;
+            if (!section) {
+                console.error('Section not found:', sectionKey);
+                return;
+            }
             
-            document.getElementById('contentTitle').textContent = section.title;
+            console.log('Updating content to:', section.title);
             
+            const contentTitle = document.getElementById('contentTitle');
             const contentBody = document.getElementById('contentBody');
-            contentBody.innerHTML = section.content || '';
+            
+            if (contentTitle) {
+                contentTitle.textContent = section.title;
+            }
+            
+            if (contentBody) {
+                contentBody.innerHTML = section.content || '';
+            }
+            
+            console.log('Content updated successfully');
         }
 
         // Journal Book Viewer State
