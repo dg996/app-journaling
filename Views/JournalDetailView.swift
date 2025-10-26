@@ -13,34 +13,45 @@ struct JournalDetailView: View {
     
     let journal: Journal
     @State private var showingAddEntry = false
-    @State private var selectedEntry: JournalEntry?
+    @State private var currentPageIndex = 0
     
     var body: some View {
         ZStack {
             Color.backgroundPrimary
                 .ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 30) {
-                    // Header con copertina del diario
-                    JournalCoverHeader(journal: journal)
-                    
-                    // Statistiche
-                    JournalStatsView(journal: journal)
-                    
-                    // Lista delle pagine/entry
-                    if journal.entries.isEmpty {
-                        EmptyEntriesView()
-                    } else {
-                        EntriesListView(
-                            entries: journal.entries,
-                            onEntryTap: { entry in
-                                selectedEntry = entry
-                            }
-                        )
+            if journal.entries.isEmpty {
+                // Empty state
+                EmptyEntriesView()
+            } else {
+                // Page viewer with swipe
+                TabView(selection: $currentPageIndex) {
+                    ForEach(Array(journal.entries.enumerated()), id: \.element.id) { index, entry in
+                        JournalPageView(entry: entry, pageNumber: index + 1)
+                            .tag(index)
                     }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .ignoresSafeArea()
+                
+                // Page Indicator
+                VStack {
+                    HStack {
+                        Spacer()
+                        Text("\(currentPageIndex + 1) di \(journal.entries.count)")
+                            .font(AppFonts.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.textSecondary)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(20)
+                            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        Spacer()
+                    }
+                    .padding(.top, 20)
                     
-                    Spacer(minLength: 100)
+                    Spacer()
                 }
             }
             
@@ -66,9 +77,132 @@ struct JournalDetailView: View {
         .sheet(isPresented: $showingAddEntry) {
             JournalEntryEditorView(journal: journal, entry: nil)
         }
-        .sheet(item: $selectedEntry) { entry in
-            JournalEntryEditorView(journal: journal, entry: entry)
+    }
+}
+
+// Full page view for journal entry
+struct JournalPageView: View {
+    let entry: JournalEntry
+    let pageNumber: Int
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Date header
+                Text(formatDate(entry.date))
+                    .font(.system(size: 13))
+                    .foregroundColor(.textTertiary)
+                    .fontWeight(.medium)
+                    .textCase(.uppercase)
+                    .tracking(0.8)
+                    .padding(.top, 40)
+                
+                // Photo if present
+                if !entry.photos.isEmpty {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.softBeige, Color(red: 0.83, green: 0.77, blue: 0.72)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(height: 200)
+                        .overlay(
+                            Image(systemName: "photo.fill")
+                                .font(.system(size: 64))
+                                .foregroundColor(.white.opacity(0.6))
+                        )
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+                        .overlay(alignment: .topTrailing) {
+                            if !entry.stickers.isEmpty {
+                                Text(entry.stickers[0].imageName)
+                                    .font(.system(size: 36))
+                                    .padding(12)
+                                    .shadow(color: Color.black.opacity(0.2), radius: 2)
+                            }
+                        }
+                }
+                
+                // Text content
+                Text(entry.text.isEmpty ? "Nessun testo" : entry.text)
+                    .font(.custom("Georgia", size: 16))
+                    .foregroundColor(.textPrimary)
+                    .lineSpacing(8)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Spacer()
+                
+                // Stickers at bottom
+                if entry.stickers.count > 1 {
+                    HStack(spacing: 16) {
+                        Spacer()
+                        ForEach(Array(entry.stickers.dropFirst()), id: \.id) { sticker in
+                            Text(sticker.imageName)
+                                .font(.system(size: 32))
+                                .shadow(color: Color.black.opacity(0.15), radius: 2)
+                        }
+                    }
+                }
+                
+                // Page number
+                Text("Pagina \(pageNumber)")
+                    .font(AppFonts.caption)
+                    .foregroundColor(.textTertiary)
+                    .padding(.top, 8)
+                    .padding(.bottom, 40)
+            }
+            .padding(.horizontal, 28)
         }
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 8)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(getFrameStyle(), lineWidth: getFrameWidth())
+                .padding(.horizontal, 12)
+                .padding(.vertical, 16)
+        )
+    }
+    
+    private func getFrameStyle() -> Color {
+        switch entry.frameType {
+        case .none:
+            return Color.clear
+        case .simple:
+            return Color.charcoalGray
+        case .polaroid:
+            return Color.softBeige
+        case .vintage:
+            return Color(red: 0.79, green: 0.65, blue: 0.50)
+        case .elegant:
+            return Color.softLavender
+        }
+    }
+    
+    private func getFrameWidth() -> CGFloat {
+        switch entry.frameType {
+        case .none:
+            return 0
+        case .simple:
+            return 2
+        case .polaroid:
+            return 14
+        case .vintage:
+            return 5
+        case .elegant:
+            return 3
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "it_IT")
+        formatter.dateFormat = "d MMMM yyyy"
+        return formatter.string(from: date)
     }
 }
 

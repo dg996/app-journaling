@@ -1016,7 +1016,6 @@
         // Journal Book Viewer State
         let currentJournalPages = [];
         let currentPageIndex = 0;
-        let isDoublePageView = true;
         let touchStartX = 0;
         let touchEndX = 0;
 
@@ -1040,43 +1039,37 @@
             
             contentBody.innerHTML = `
                 <div style="width: 100%; height: 100vh; display: flex; flex-direction: column; background: #F5F5F5; overflow: hidden;">
-                    <!-- View Toggle -->
-                    <div style="padding: 16px; display: flex; justify-content: center; gap: 12px;">
-                        <button onclick="toggleBookView(false)" id="singleViewBtn" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #E0E0E0; background: white; color: #787878; font-size: 13px; cursor: pointer; transition: all 0.2s;">
-                            📄 Pagina Singola
-                        </button>
-                        <button onclick="toggleBookView(true)" id="doubleViewBtn" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #3C3C3C; background: #3C3C3C; color: white; font-size: 13px; cursor: pointer; transition: all 0.2s;">
-                            📖 Libro Aperto
-                        </button>
-                    </div>
-                    
-                    <!-- Book Container -->
-                    <div id="bookContainer" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; overflow: hidden;">
+                    <!-- Page Container - Full screen -->
+                    <div id="bookContainer" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px 12px; position: relative; overflow: hidden; touch-action: pan-y;">
                         <!-- Pages will be rendered here -->
                     </div>
                     
-                    <!-- Navigation Controls -->
-                    <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-top: 1px solid #E0E0E0;">
-                        <button onclick="previousPage()" id="prevBtn" style="padding: 12px 24px; border-radius: 12px; border: none; background: #3C3C3C; color: white; font-size: 14px; font-weight: 600; cursor: pointer; opacity: 0.5;">
-                            ‹ Indietro
-                        </button>
-                        
-                        <div id="pageIndicator" style="font-size: 14px; color: #787878; font-weight: 600;">
+                    <!-- Page Indicator -->
+                    <div style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.9); padding: 8px 16px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 50;">
+                        <div id="pageIndicator" style="font-size: 13px; color: #787878; font-weight: 600;">
                             1 di ${currentJournalPages.length}
                         </div>
-                        
-                        <button onclick="nextPage()" id="nextBtn" style="padding: 12px 24px; border-radius: 12px; border: none; background: #3C3C3C; color: white; font-size: 14px; font-weight: 600; cursor: pointer;">
-                            Avanti ›
-                        </button>
+                    </div>
+                    
+                    <!-- Swipe Hint (shows only on first page) -->
+                    <div id="swipeHint" style="position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(60,60,60,0.8); color: white; padding: 12px 24px; border-radius: 24px; font-size: 13px; display: flex; align-items: center; gap: 8px; animation: fadeInOut 3s ease-in-out infinite;">
+                        👈 Swipe per navigare 👉
                     </div>
                     
                     <!-- Add Page Button -->
-                    <button onclick="openEntryEditor('${title}')" style="position: fixed; bottom: 100px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: #3C3C3C; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 100;">
+                    <button onclick="openEntryEditor('${title}')" style="position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: #3C3C3C; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 100; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
                         </svg>
                     </button>
                 </div>
+                
+                <style>
+                    @keyframes fadeInOut {
+                        0%, 100% { opacity: 0; }
+                        50% { opacity: 1; }
+                    }
+                </style>
             `;
             
             renderBookPages();
@@ -1110,84 +1103,61 @@
             return pages;
         }
 
-        // Render book pages
+        // Render book pages (single page view only)
         function renderBookPages() {
             const container = document.getElementById('bookContainer');
             if (!container) return;
             
-            const pagesHTML = [];
-            
-            if (isDoublePageView) {
-                // Double page view (book open)
-                const leftPage = currentJournalPages[currentPageIndex];
-                const rightPage = currentJournalPages[currentPageIndex + 1];
-                
-                if (leftPage) {
-                    pagesHTML.push(createPageHTML(leftPage, 'left'));
-                }
-                if (rightPage) {
-                    pagesHTML.push(createPageHTML(rightPage, 'right'));
-                }
-            } else {
-                // Single page view
-                const page = currentJournalPages[currentPageIndex];
-                if (page) {
-                    pagesHTML.push(createPageHTML(page, 'single'));
-                }
-            }
+            const page = currentJournalPages[currentPageIndex];
+            if (!page) return;
             
             container.innerHTML = `
-                <div style="display: flex; gap: ${isDoublePageView ? '0' : '20px'}; max-width: ${isDoublePageView ? '800px' : '400px'}; width: 100%; height: 100%; align-items: center; justify-content: center;">
-                    ${pagesHTML.join('')}
+                <div style="width: 100%; max-width: 480px; height: 100%; display: flex; align-items: center; justify-content: center;">
+                    ${createPageHTML(page)}
                 </div>
             `;
             
-            updateNavigationButtons();
+            updatePageIndicator();
+            updateSwipeHint();
         }
 
-        // Create HTML for a single page
-        function createPageHTML(page, position) {
+        // Create HTML for a single page (full screen)
+        function createPageHTML(page) {
             const frameStyles = {
                 'none': '',
-                'polaroid': 'border: 12px solid #F5F5DC; border-bottom: 40px solid #F5F5DC;',
-                'vintage': 'border: 4px solid #C9A580; box-shadow: inset 0 0 20px rgba(201, 165, 128, 0.3);',
+                'polaroid': 'border: 14px solid #F5F5DC; border-bottom: 50px solid #F5F5DC;',
+                'vintage': 'border: 5px solid #C9A580; box-shadow: inset 0 0 25px rgba(201, 165, 128, 0.3);',
                 'simple': 'border: 2px solid #3C3C3C;'
             };
             
-            const pageWidth = isDoublePageView ? '380px' : '100%';
-            const maxWidth = isDoublePageView ? '380px' : '400px';
-            
             return `
                 <div style="
-                    width: ${pageWidth};
-                    max-width: ${maxWidth};
-                    height: 550px;
+                    width: 100%;
+                    max-width: 480px;
+                    height: calc(100vh - 140px);
+                    max-height: 720px;
                     background: white;
-                    box-shadow: ${position === 'left' ? '-2px 0 8px rgba(0,0,0,0.1), 2px 0 4px rgba(0,0,0,0.05)' : 
-                                position === 'right' ? '2px 0 8px rgba(0,0,0,0.1), -2px 0 4px rgba(0,0,0,0.05)' : 
-                                '0 4px 16px rgba(0,0,0,0.15)'};
-                    border-radius: ${position === 'left' ? '12px 0 0 12px' : 
-                                    position === 'right' ? '0 12px 12px 0' : 
-                                    '12px'};
-                    padding: 32px 24px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+                    border-radius: 16px;
+                    padding: 40px 28px;
                     display: flex;
                     flex-direction: column;
-                    gap: 16px;
+                    gap: 20px;
                     position: relative;
-                    overflow: hidden;
+                    overflow: auto;
                     ${frameStyles[page.frame] || ''}
                 ">
                     <!-- Date Header -->
-                    <div style="font-size: 12px; color: #A8A8A8; text-align: center; font-weight: 500; letter-spacing: 0.5px;">
+                    <div style="font-size: 13px; color: #A8A8A8; text-align: center; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase;">
                         ${page.date}
                     </div>
                     
                     <!-- Photo if present -->
                     ${page.hasPhoto ? `
-                        <div style="width: 100%; height: 160px; background: linear-gradient(135deg, #E8DDD3 0%, #D4C4B8 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-                            <div style="font-size: 48px; opacity: 0.6;">📸</div>
+                        <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #E8DDD3 0%, #D4C4B8 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="font-size: 64px; opacity: 0.6;">📸</div>
                             ${page.stickers.length > 0 ? `
-                                <div style="position: absolute; top: 8px; right: 8px; font-size: 28px;">
+                                <div style="position: absolute; top: 12px; right: 12px; font-size: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
                                     ${page.stickers[0]}
                                 </div>
                             ` : ''}
@@ -1195,101 +1165,53 @@
                     ` : ''}
                     
                     <!-- Text Content -->
-                    <div style="flex: 1; font-family: 'Georgia', serif; font-size: 14px; line-height: 1.8; color: #3C3C3C; text-align: justify; overflow: hidden;">
+                    <div style="flex: 1; font-family: 'Georgia', serif; font-size: 16px; line-height: 1.9; color: #3C3C3C; text-align: justify; overflow-y: auto; padding-right: 4px;">
                         ${page.text}
                     </div>
                     
                     <!-- Stickers at bottom -->
                     ${page.stickers.length > 1 ? `
-                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 12px;">
                             ${page.stickers.slice(1).map(sticker => `
-                                <span style="font-size: 24px;">${sticker}</span>
+                                <span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${sticker}</span>
                             `).join('')}
                         </div>
                     ` : ''}
                     
                     <!-- Page Number -->
-                    <div style="text-align: center; font-size: 11px; color: #C8C8C8; margin-top: auto;">
-                        ${page.id + 1}
+                    <div style="text-align: center; font-size: 12px; color: #C8C8C8; margin-top: 8px; font-weight: 500;">
+                        Pagina ${page.id + 1}
                     </div>
-                    
-                    <!-- Binding shadow for book effect -->
-                    ${position === 'left' ? `
-                        <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(to left, rgba(0,0,0,0.1), transparent); pointer-events: none;"></div>
-                    ` : position === 'right' ? `
-                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(to right, rgba(0,0,0,0.1), transparent); pointer-events: none;"></div>
-                    ` : ''}
                 </div>
             `;
         }
 
-        // Toggle between single and double page view
-        function toggleBookView(isDouble) {
-            isDoublePageView = isDouble;
-            
-            // Update button styles
-            const singleBtn = document.getElementById('singleViewBtn');
-            const doubleBtn = document.getElementById('doubleViewBtn');
-            
-            if (singleBtn && doubleBtn) {
-                if (isDouble) {
-                    singleBtn.style.background = 'white';
-                    singleBtn.style.color = '#787878';
-                    singleBtn.style.border = '1px solid #E0E0E0';
-                    doubleBtn.style.background = '#3C3C3C';
-                    doubleBtn.style.color = 'white';
-                    doubleBtn.style.border = '1px solid #3C3C3C';
-                } else {
-                    singleBtn.style.background = '#3C3C3C';
-                    singleBtn.style.color = 'white';
-                    singleBtn.style.border = '1px solid #3C3C3C';
-                    doubleBtn.style.background = 'white';
-                    doubleBtn.style.color = '#787878';
-                    doubleBtn.style.border = '1px solid #E0E0E0';
-                }
-            }
-            
-            renderBookPages();
-        }
-
         // Navigation functions
         function nextPage() {
-            const increment = isDoublePageView ? 2 : 1;
-            if (currentPageIndex + increment < currentJournalPages.length) {
-                currentPageIndex += increment;
+            if (currentPageIndex + 1 < currentJournalPages.length) {
+                currentPageIndex++;
                 renderBookPages();
             }
         }
 
         function previousPage() {
-            const decrement = isDoublePageView ? 2 : 1;
-            if (currentPageIndex - decrement >= 0) {
-                currentPageIndex -= decrement;
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
                 renderBookPages();
             }
         }
 
-        function updateNavigationButtons() {
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
+        function updatePageIndicator() {
             const indicator = document.getElementById('pageIndicator');
-            
-            if (prevBtn) {
-                prevBtn.style.opacity = currentPageIndex > 0 ? '1' : '0.3';
-                prevBtn.style.cursor = currentPageIndex > 0 ? 'pointer' : 'not-allowed';
-            }
-            
-            const increment = isDoublePageView ? 2 : 1;
-            if (nextBtn) {
-                nextBtn.style.opacity = currentPageIndex + increment < currentJournalPages.length ? '1' : '0.3';
-                nextBtn.style.cursor = currentPageIndex + increment < currentJournalPages.length ? 'pointer' : 'not-allowed';
-            }
-            
             if (indicator) {
-                const currentDisplay = isDoublePageView ? 
-                    `${currentPageIndex + 1}-${Math.min(currentPageIndex + 2, currentJournalPages.length)}` : 
-                    `${currentPageIndex + 1}`;
-                indicator.textContent = `${currentDisplay} di ${currentJournalPages.length}`;
+                indicator.textContent = `${currentPageIndex + 1} di ${currentJournalPages.length}`;
+            }
+        }
+
+        function updateSwipeHint() {
+            const hint = document.getElementById('swipeHint');
+            if (hint && currentPageIndex > 0) {
+                hint.style.display = 'none';
             }
         }
 
