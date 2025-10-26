@@ -817,36 +817,42 @@
             }, 300);
         }
 
+        function getHomeContent() {
+            return `
+                <div class="home-background"></div>
+                <div class="journals-grid" style="position: relative; z-index: 1;">
+                    <div class="journal-card" onclick="openJournalDetail('Il Mio Primo Diario', 'beige', 3)">
+                        <div class="journal-cover cover-beige"></div>
+                        <div class="journal-info">
+                            <h3>Il Mio Primo Diario</h3>
+                            <p>3 pagine</p>
+                        </div>
+                    </div>
+                    <div class="journal-card" onclick="openJournalDetail('Viaggi 2025', 'sage', 0)">
+                        <div class="journal-cover cover-sage"></div>
+                        <div class="journal-info">
+                            <h3>Viaggi 2025</h3>
+                            <p>0 pagine</p>
+                        </div>
+                    </div>
+                    <div class="journal-card" onclick="openJournalDetail('Ricordi Preziosi', 'lavender', 1)">
+                        <div class="journal-cover cover-lavender"></div>
+                        <div class="journal-info">
+                            <h3>Ricordi Preziosi</h3>
+                            <p>1 pagina</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         const sections = {
             home: {
                 title: 'I Miei Journals',
                 icon: '📚',
-                content: `
-                    <div class="home-background"></div>
-                    <div class="journals-grid" style="position: relative; z-index: 1;">
-                        <div class="journal-card">
-                            <div class="journal-cover cover-beige"></div>
-                            <div class="journal-info">
-                                <h3>Il Mio Primo Diario</h3>
-                                <p>3 pagine</p>
-                            </div>
-                        </div>
-                        <div class="journal-card">
-                            <div class="journal-cover cover-sage"></div>
-                            <div class="journal-info">
-                                <h3>Viaggi 2025</h3>
-                                <p>0 pagine</p>
-                            </div>
-                        </div>
-                        <div class="journal-card">
-                            <div class="journal-cover cover-lavender"></div>
-                            <div class="journal-info">
-                                <h3>Ricordi Preziosi</h3>
-                                <p>1 pagina</p>
-                            </div>
-                        </div>
-                    </div>
-                `,
+                get content() {
+                    return getHomeContent();
+                },
                 color: 'rgb(255, 204, 0)'
             },
             // Altre sezioni temporaneamente rimosse
