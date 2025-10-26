@@ -1110,9 +1110,9 @@
                                 <div style="font-size: 12px; color: #787878;">Sticker</div>
                             </button>
                             
-                            <button onclick="addFrame('shape')" class="frame-option">
-                                <div style="font-size: 32px; margin-bottom: 8px;">⬜</div>
-                                <div style="font-size: 12px; color: #787878;">Forma</div>
+                            <button onclick="addFrame('border')" class="frame-option">
+                                <div style="font-size: 32px; margin-bottom: 8px;">🖼️</div>
+                                <div style="font-size: 12px; color: #787878;">Cornici</div>
                             </button>
                         </div>
                     </div>
@@ -1244,6 +1244,7 @@
         // Create HTML for a single frame
         function createFrameHTML(frame) {
             const frameContent = getFrameContent(frame);
+            const borderStyle = getBorderStyle(frame);
             
             return `
                 <div class="journal-frame" data-frame-id="${frame.id}" style="
@@ -1252,11 +1253,10 @@
                     top: ${frame.y}px;
                     width: ${frame.width}px;
                     height: ${frame.height}px;
-                    border: 2px solid #3C3C3C;
-                    border-radius: 8px;
-                    background: white;
+                    ${borderStyle}
+                    background: ${frame.type === 'border' ? 'transparent' : 'white'};
                     cursor: move;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    box-shadow: ${frame.type === 'border' ? 'none' : '0 2px 8px rgba(0,0,0,0.1)'};
                     overflow: hidden;
                 " onmousedown="startDrag(event, '${frame.id}')" ontouchstart="startDrag(event, '${frame.id}')">
                     ${frameContent}
@@ -1291,9 +1291,74 @@
                         justify-content: center;
                         opacity: 0.6;
                         transition: opacity 0.2s;
+                        z-index: 10;
                     " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">×</button>
+                    
+                    ${frame.type === 'border' ? `
+                        <!-- Border Type Selector for decorative frames -->
+                        <button onclick="cycleBorderType('${frame.id}')" style="
+                            position: absolute;
+                            top: 4px;
+                            left: 4px;
+                            padding: 4px 8px;
+                            border-radius: 8px;
+                            border: none;
+                            background: rgba(60, 60, 60, 0.8);
+                            color: white;
+                            font-size: 10px;
+                            cursor: pointer;
+                            opacity: 0.6;
+                            transition: opacity 0.2s;
+                            z-index: 10;
+                        " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+                            ${frame.borderType || 'semplice'}
+                        </button>
+                    ` : ''}
                 </div>
             `;
+        }
+
+        // Get border style based on frame type and border type
+        function getBorderStyle(frame) {
+            if (frame.type !== 'border') {
+                return 'border: 2px solid #3C3C3C; border-radius: 8px;';
+            }
+            
+            // Different decorative border styles
+            switch(frame.borderType || 'semplice') {
+                case 'semplice':
+                    return 'border: 3px solid #3C3C3C; border-radius: 8px;';
+                case 'doppia':
+                    return 'border: 4px double #3C3C3C; border-radius: 8px;';
+                case 'tratteggiata':
+                    return 'border: 3px dashed #C9A580; border-radius: 8px;';
+                case 'puntinata':
+                    return 'border: 3px dotted #8B7D6B; border-radius: 12px;';
+                case 'polaroid':
+                    return 'border: 12px solid #F5F5DC; border-bottom: 40px solid #F5F5DC; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+                case 'vintage':
+                    return 'border: 6px solid #C9A580; border-radius: 2px; box-shadow: inset 0 0 20px rgba(139, 125, 107, 0.3), 0 4px 12px rgba(0,0,0,0.15);';
+                case 'elegante':
+                    return 'border: 2px solid #B8A5D9; border-radius: 16px; box-shadow: 0 0 0 1px white, 0 0 0 3px #B8A5D9;';
+                case 'spessa':
+                    return 'border: 8px solid #3C3C3C; border-radius: 4px;';
+                default:
+                    return 'border: 3px solid #3C3C3C; border-radius: 8px;';
+            }
+        }
+
+        // Cycle through different border types for decorative frames
+        function cycleBorderType(frameId) {
+            event.stopPropagation();
+            const frame = findFrame(frameId);
+            if (!frame || frame.type !== 'border') return;
+            
+            const borderTypes = ['semplice', 'doppia', 'tratteggiata', 'puntinata', 'polaroid', 'vintage', 'elegante', 'spessa'];
+            const currentIndex = borderTypes.indexOf(frame.borderType || 'semplice');
+            const nextIndex = (currentIndex + 1) % borderTypes.length;
+            
+            frame.borderType = borderTypes[nextIndex];
+            renderBookPages();
         }
 
         // Get frame content based on type
@@ -1305,6 +1370,9 @@
                     return `<div style="width: 100%; height: 100%; background: linear-gradient(135deg, #E8DDD3 0%, #D4C4B8 100%); display: flex; align-items: center; justify-content: center; font-size: 48px; color: rgba(255,255,255,0.7);">📸</div>`;
                 case 'sticker':
                     return `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: ${Math.min(frame.width, frame.height) * 0.7}px;">${frame.content || '⭐'}</div>`;
+                case 'border':
+                    // Empty frame with decorative border only - no background
+                    return `<div style="width: 100%; height: 100%; pointer-events: none;"></div>`;
                 default:
                     return '';
             }
@@ -1621,7 +1689,8 @@
                 y: 100,
                 width: 200,
                 height: 150,
-                content: type === 'text' ? '' : type === 'sticker' ? '⭐' : ''
+                content: type === 'text' ? '' : type === 'sticker' ? '⭐' : '',
+                borderType: type === 'border' ? 'semplice' : null
             };
             
             page.frames.push(newFrame);
