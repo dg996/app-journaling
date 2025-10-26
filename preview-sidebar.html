@@ -705,7 +705,7 @@
                         
                         <!-- Home Content -->
                         <div class="journals-grid" style="position: relative; z-index: 1;">
-                            <div class="journal-card">
+                            <div class="journal-card" onclick="openJournalDetail('Il Mio Primo Diario', 'beige', 3)">
                                 <div class="journal-cover cover-beige"></div>
                                 <div class="journal-info">
                                     <h3>Il Mio Primo Diario</h3>
@@ -713,7 +713,7 @@
                                 </div>
                             </div>
 
-                            <div class="journal-card">
+                            <div class="journal-card" onclick="openJournalDetail('Viaggi 2025', 'sage', 0)">
                                 <div class="journal-cover cover-sage"></div>
                                 <div class="journal-info">
                                     <h3>Viaggi 2025</h3>
@@ -721,7 +721,7 @@
                                 </div>
                             </div>
 
-                            <div class="journal-card">
+                            <div class="journal-card" onclick="openJournalDetail('Ricordi Preziosi', 'lavender', 1)">
                                 <div class="journal-cover cover-lavender"></div>
                                 <div class="journal-info">
                                     <h3>Ricordi Preziosi</h3>
@@ -1005,6 +1005,120 @@
             
             const contentBody = document.getElementById('contentBody');
             contentBody.innerHTML = section.content || '';
+        }
+
+        // Open Journal Detail
+        function openJournalDetail(title, color, entriesCount) {
+            const contentBody = document.getElementById('contentBody');
+            const contentTitle = document.getElementById('contentTitle');
+            
+            contentTitle.innerHTML = `
+                <button onclick="backToHome()" style="background: transparent; border: none; padding: 8px; margin-right: 12px; cursor: pointer; display: inline-flex; align-items: center;">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 16L6 10L12 4" stroke="#3C3C3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <span>${title}</span>
+            `;
+            
+            const colorClass = `cover-${color}`;
+            
+            contentBody.innerHTML = `
+                <div style="padding: 30px 20px; max-width: 500px; margin: 0 auto;">
+                    <!-- Journal Cover Header -->
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <div class="journal-cover ${colorClass}" style="width: 160px; height: 200px; margin: 0 auto 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);"></div>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div style="display: flex; justify-content: space-around; margin-bottom: 40px; padding: 20px; background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: 4px;">📄</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin-bottom: 4px;">${entriesCount}</div>
+                            <div style="font-size: 13px; color: #787878;">Pagine</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: 4px;">📸</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin-bottom: 4px;">${entriesCount * 2}</div>
+                            <div style="font-size: 13px; color: #787878;">Foto</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: 4px;">📅</div>
+                            <div style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin-bottom: 4px;">12</div>
+                            <div style="font-size: 13px; color: #787878;">Giorni</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Entries List -->
+                    <div style="margin-bottom: 100px;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin-bottom: 20px;">Le Tue Pagine</h3>
+                        
+                        ${entriesCount === 0 ? `
+                            <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <div style="font-size: 48px; margin-bottom: 16px;">✍️</div>
+                                <div style="font-size: 18px; font-weight: 600; color: #787878; margin-bottom: 8px;">Inizia a Scrivere</div>
+                                <div style="font-size: 14px; color: #A8A8A8;">Tocca + per creare la tua prima pagina</div>
+                            </div>
+                        ` : generateEntries(entriesCount)}
+                    </div>
+                    
+                    <!-- Add Entry Button -->
+                    <div style="position: fixed; bottom: 80px; right: 40px; z-index: 10;">
+                        <button onclick="openEntryEditor('${title}')" style="width: 60px; height: 60px; border-radius: 50%; background: #3C3C3C; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateEntries(count) {
+            let html = '';
+            const dates = ['26 Ottobre 2025', '25 Ottobre 2025', '24 Ottobre 2025'];
+            const texts = [
+                'Oggi è stata una giornata meravigliosa! Ho passato del tempo con gli amici e abbiamo fatto una passeggiata...',
+                'Riflessioni sulla mia crescita personale. Sto imparando ad essere più paziente con me stesso...',
+                'Un momento di gratitudine per tutte le piccole cose che rendono speciale ogni giorno.'
+            ];
+            
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div onclick="openEntryEditor('Entry ${i+1}')" style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; display: flex; gap: 16px; align-items: center;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #E8DDD3 0%, #D4C4B8 100%); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                            📸
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-size: 13px; color: #787878; margin-bottom: 6px;">${dates[i % 3]}</div>
+                            <div style="font-size: 15px; color: #3C3C3C; margin-bottom: 8px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                ${texts[i % 3]}
+                            </div>
+                            <div style="display: flex; gap: 12px; font-size: 12px; color: #787878;">
+                                <span>📷 2</span>
+                                <span>😊 1</span>
+                                <span>🖼️ Simple</span>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: #C8C8C8;">
+                            ›
+                        </div>
+                    </div>
+                `;
+            }
+            return html;
+        }
+
+        function backToHome() {
+            const contentTitle = document.getElementById('contentTitle');
+            const contentBody = document.getElementById('contentBody');
+            
+            contentTitle.textContent = 'I Miei Journals';
+            contentBody.innerHTML = sections.home.content;
+        }
+
+        function openEntryEditor(title) {
+            alert(`Opening editor for: ${title}\n\n(Full entry editor coming soon! 🎨)`);
         }
     </script>
 </body>
