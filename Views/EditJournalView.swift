@@ -11,7 +11,7 @@ struct EditJournalView: View {
     @EnvironmentObject var journalStore: JournalStore
     @Environment(\.dismiss) var dismiss
     
-    @Binding var journal: Journal
+    let journalId: UUID
     @State private var editedTitle: String
     @State private var editedCoverColor: String
     
@@ -23,10 +23,10 @@ struct EditJournalView: View {
         ("paleBlue", Color.paleBlue)
     ]
     
-    init(journal: Binding<Journal>) {
-        self._journal = journal
-        self._editedTitle = State(initialValue: journal.wrappedValue.title)
-        self._editedCoverColor = State(initialValue: journal.wrappedValue.coverColor)
+    init(journalId: UUID, currentTitle: String, currentColor: String) {
+        self.journalId = journalId
+        self._editedTitle = State(initialValue: currentTitle)
+        self._editedCoverColor = State(initialValue: currentColor)
     }
     
     var body: some View {
@@ -140,9 +140,16 @@ struct EditJournalView: View {
     }
     
     private func saveChanges() {
-        journal.title = editedTitle
-        journal.coverColor = editedCoverColor
-        journal.lastModifiedDate = Date()
+        // Find the journal in the store and update it
+        if let index = journalStore.journals.firstIndex(where: { $0.id == journalId }) {
+            var updatedJournal = journalStore.journals[index]
+            updatedJournal.title = editedTitle
+            updatedJournal.coverColor = editedCoverColor
+            updatedJournal.lastModifiedDate = Date()
+            
+            // Update in the store
+            journalStore.updateJournal(updatedJournal)
+        }
         dismiss()
     }
     
@@ -198,7 +205,11 @@ struct ColorOptionView: View {
 }
 
 #Preview {
-    EditJournalView(journal: .constant(Journal(title: "Il Mio Diario", coverColor: "softBeige")))
-        .environmentObject(JournalStore())
+    EditJournalView(
+        journalId: UUID(),
+        currentTitle: "Il Mio Diario",
+        currentColor: "softBeige"
+    )
+    .environmentObject(JournalStore())
 }
 

@@ -818,14 +818,8 @@
         }
 
         function getHomeContent() {
-            const journals = [
-                journalsData['Il Mio Primo Diario'],
-                journalsData['Viaggi 2025'],
-                journalsData['Ricordi Preziosi']
-            ];
-            
-            const journalCards = journals.map(journal => `
-                <div class="journal-card" onclick="openJournalDetail('${journal.title}', '${journal.color}', ${journal.entries})">
+            const journalCards = journalsData.map(journal => `
+                <div class="journal-card" onclick="openJournalDetail('${journal.id}')">
                     <div class="journal-cover cover-${journal.color}"></div>
                     <div class="journal-info">
                         <h3>${journal.title}</h3>
@@ -1016,7 +1010,10 @@
         let touchEndX = 0;
 
         // Open Journal Detail - Book View
-        function openJournalDetail(title, color, entriesCount) {
+        function openJournalDetail(journalId) {
+            const journal = journalsData.find(j => j.id === journalId);
+            if (!journal) return;
+            
             const contentBody = document.getElementById('contentBody');
             const contentTitle = document.getElementById('contentTitle');
             
@@ -1026,18 +1023,20 @@
                         <path d="M12 16L6 10L12 4" stroke="#3C3C3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <span id="journalTitle">${title}</span>
-                <button onclick="editJournal('${title}', '${color}')" style="background: transparent; border: none; padding: 8px; margin-left: 12px; cursor: pointer; display: inline-flex; align-items: center;">
+                <span id="journalTitle">${journal.title}</span>
+                <button onclick="editJournal('${journalId}')" style="background: transparent; border: none; padding: 8px; margin-left: 12px; cursor: pointer; display: inline-flex; align-items: center;">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="10" cy="10" r="9" fill="#3C3C3C"/>
-                        <path d="M10 6L10 14M6 10L14 10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                        <path d="M13 7L7 13M7 7L13 13" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+                        <path d="M13.5 6.5L7 13M10 7L13 10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </button>
             `;
             
+            // Store current journal ID for editing
+            window.currentViewingJournalId = journalId;
+            
             // Generate journal pages with content
-            currentJournalPages = generateJournalPages(entriesCount, color);
+            currentJournalPages = generateJournalPages(journal.entries, journal.color);
             currentPageIndex = 0;
             
             contentBody.innerHTML = `
@@ -1275,12 +1274,17 @@
         }
 
         // Edit Journal (Title & Cover)
+        let currentJournalId = '';
         let currentJournalTitle = '';
         let currentJournalColor = '';
 
-        function editJournal(title, color) {
-            currentJournalTitle = title;
-            currentJournalColor = color;
+        function editJournal(journalId) {
+            const journal = journalsData.find(j => j.id === journalId);
+            if (!journal) return;
+            
+            currentJournalId = journalId;
+            currentJournalTitle = journal.title;
+            currentJournalColor = journal.color;
             
             // Create modal
             const modal = document.createElement('div');
@@ -1308,9 +1312,9 @@
                     <!-- Preview -->
                     <div style="text-align: center; margin-bottom: 24px;">
                         <div style="font-size: 12px; color: #787878; margin-bottom: 12px;">Anteprima</div>
-                        <div id="coverPreview" class="journal-cover cover-${color}" style="width: 140px; height: 180px; margin: 0 auto; box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; position: relative;">
+                        <div id="coverPreview" class="journal-cover cover-${currentJournalColor}" style="width: 140px; height: 180px; margin: 0 auto; box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; position: relative;">
                             <span id="previewTitle" style="font-size: 16px; font-weight: 600; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3); padding: 12px; text-align: center;">
-                                ${title}
+                                ${currentJournalTitle}
                             </span>
                         </div>
                     </div>
@@ -1323,7 +1327,7 @@
                         <input 
                             type="text" 
                             id="journalTitleInput" 
-                            value="${title}" 
+                            value="${currentJournalTitle}" 
                             placeholder="Es. Il Mio Diario"
                             style="width: 100%; padding: 12px; border: 1px solid #E0E0E0; border-radius: 8px; font-size: 15px; font-family: inherit;"
                             oninput="updatePreview()"
@@ -1336,7 +1340,7 @@
                             Colore della Copertina
                         </label>
                         <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;">
-                            ${generateColorOptions(color)}
+                            ${generateColorOptions(currentJournalColor)}
                         </div>
                     </div>
                     
@@ -1399,12 +1403,12 @@
             }
         }
 
-        // Store journals data
-        let journalsData = {
-            'Il Mio Primo Diario': { title: 'Il Mio Primo Diario', color: 'beige', entries: 3 },
-            'Viaggi 2025': { title: 'Viaggi 2025', color: 'sage', entries: 0 },
-            'Ricordi Preziosi': { title: 'Ricordi Preziosi', color: 'lavender', entries: 1 }
-        };
+        // Store journals data with IDs
+        let journalsData = [
+            { id: 'journal1', title: 'Il Mio Primo Diario', color: 'beige', entries: 3 },
+            { id: 'journal2', title: 'Viaggi 2025', color: 'sage', entries: 0 },
+            { id: 'journal3', title: 'Ricordi Preziosi', color: 'lavender', entries: 1 }
+        ];
 
         function saveJournalChanges() {
             const newTitle = document.getElementById('journalTitleInput').value;
@@ -1414,11 +1418,13 @@
                 return;
             }
             
-            // Update stored data
-            const oldTitle = currentJournalTitle;
-            if (journalsData[oldTitle]) {
-                journalsData[oldTitle].title = newTitle;
-                journalsData[oldTitle].color = currentJournalColor;
+            // Find and update the journal in the array
+            const journalIndex = journalsData.findIndex(j => j.id === currentJournalId);
+            if (journalIndex !== -1) {
+                journalsData[journalIndex].title = newTitle;
+                journalsData[journalIndex].color = currentJournalColor;
+                
+                console.log('Journal updated:', journalsData[journalIndex]);
             }
             
             // Update current view title

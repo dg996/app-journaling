@@ -20,12 +20,6 @@ struct JournalDetailView: View {
         journalStore.journals.first { $0.id == journalId }
     }
     
-    private var journalBinding: Binding<Journal> {
-        Binding(
-            get: { journal ?? Journal(title: "Sconosciuto") },
-            set: { journalStore.updateJournal($0) }
-        )
-    }
     
     var body: some View {
         Group {
@@ -102,7 +96,11 @@ struct JournalDetailView: View {
                     JournalEntryEditorView(journal: journal, entry: nil)
                 }
                 .sheet(isPresented: $showingEditJournal) {
-                    EditJournalView(journal: journalBinding)
+                    EditJournalView(
+                        journalId: journal.id,
+                        currentTitle: journal.title,
+                        currentColor: journal.coverColor
+                    )
                 }
             } else {
                 Text("Diario non trovato")
