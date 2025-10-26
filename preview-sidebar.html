@@ -990,13 +990,20 @@
         // Journal Book Viewer State
         let currentJournalPages = [];
         let currentPageIndex = 0;
+        let currentJournalId = null;
         let touchStartX = 0;
         let touchEndX = 0;
 
         // Open Journal Detail - Book View
         function openJournalDetail(journalId) {
+            // Load from localStorage if available
+            loadJournalsFromStorage();
+            
             const journal = journalsData.find(j => j.id === journalId);
             if (!journal) return;
+            
+            // Set current journal ID for saving
+            currentJournalId = journalId;
             
             const contentBody = document.getElementById('contentBody');
             const contentTitle = document.getElementById('contentTitle');
@@ -1081,6 +1088,15 @@
                         👈 Swipe per navigare 👉
                     </div>
                     
+                    <!-- Edit Mode Indicator & Save Button -->
+                    <div id="editModeIndicator" style="display: none; position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(255, 193, 7, 0.95); color: #3C3C3C; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 60; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                        📝 Modalità Modifica
+                    </div>
+                    
+                    <button id="savePageButton" onclick="savePage()" style="display: none; position: absolute; top: 80px; right: 20px; background: #4CAF50; color: white; border: none; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 60; transition: all 0.2s;" onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                        💾 Salva
+                    </button>
+                    
                     <!-- Add Frame Button - NOW INSIDE THE SCREEN -->
                     <button onclick="toggleFrameSelector()" style="position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); width: 56px; height: 56px; border-radius: 50%; background: #3C3C3C; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 100; transition: all 0.3s;" onmouseover="this.style.transform='translateX(-50%) scale(1.1)'" onmouseout="this.style.transform='translateX(-50%) scale(1)'">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1114,6 +1130,17 @@
                                 <div style="font-size: 32px; margin-bottom: 8px;">🖼️</div>
                                 <div style="font-size: 12px; color: #787878;">Cornici</div>
                             </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sticker Picker -->
+                    <div id="stickerPicker" style="display: none; position: absolute; bottom: 0; left: 0; right: 0; max-height: 350px; background: white; border-radius: 24px 24px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.2); z-index: 250; padding: 24px; overflow-y: auto; animation: slideUp 0.3s ease;">
+                        <div style="width: 40px; height: 4px; background: #D0D0D0; border-radius: 2px; margin: 0 auto 24px;"></div>
+                        
+                        <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #3C3C3C;">Scegli Sticker</h3>
+                        
+                        <div id="stickerGrid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; max-height: 250px; overflow-y: auto;">
+                            <!-- Stickers will be populated here -->
                         </div>
                     </div>
                     
@@ -1651,6 +1678,30 @@
             sections.home.content = getHomeContent();
         }
 
+        // Load journals from localStorage
+        function loadJournalsFromStorage() {
+            try {
+                const saved = localStorage.getItem('journalsData');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Merge saved data with existing journals
+                    parsed.forEach(savedJournal => {
+                        const existing = journalsData.find(j => j.id === savedJournal.id);
+                        if (existing && savedJournal.pages) {
+                            existing.pages = savedJournal.pages;
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error loading from localStorage:', e);
+            }
+        }
+
+        // Initialize localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadJournalsFromStorage();
+        });
+
         // ===== FRAME MANAGEMENT FUNCTIONS =====
         
         let draggedFrameId = null;
@@ -1664,6 +1715,15 @@
         let resizeStartY = 0;
         let frameStartWidth = 0;
         let frameStartHeight = 0;
+        let isEditMode = false;
+        
+        // Available stickers
+        const availableStickers = [
+            '⭐', '💖', '✨', '🌸', '🌺', '🌻', '🌼', '🌷',
+            '🦋', '🐝', '🍀', '🌙', '☀️', '🌈', '☁️', '⚡',
+            '💫', '🎀', '🎨', '📷', '✏️', '📝', '💌', '🎵',
+            '🍓', '🍒', '🍑', '🍋', '🥑', '🌿', '🍂', '🍁'
+        ];
 
         // Toggle frame selector sheet
         function toggleFrameSelector() {
@@ -1682,20 +1742,156 @@
             const page = currentJournalPages[currentPageIndex];
             if (!page) return;
             
+            if (type === 'sticker') {
+                // Show sticker picker instead of adding directly
+                toggleFrameSelector();
+                showStickerPicker();
+                return;
+            }
+            
             const newFrame = {
                 id: `frame_${Date.now()}`,
                 type: type,
                 x: 50,
                 y: 100,
-                width: 200,
-                height: 150,
-                content: type === 'text' ? '' : type === 'sticker' ? '⭐' : '',
+                width: type === 'text' ? 250 : 200,
+                height: type === 'text' ? 200 : 150,
+                content: type === 'text' ? '' : '',
                 borderType: type === 'border' ? 'semplice' : null
             };
             
             page.frames.push(newFrame);
+            enterEditMode();
             renderBookPages();
             toggleFrameSelector();
+        }
+
+        // Show sticker picker
+        function showStickerPicker() {
+            const picker = document.getElementById('stickerPicker');
+            const grid = document.getElementById('stickerGrid');
+            
+            if (!picker || !grid) return;
+            
+            // Populate sticker grid
+            grid.innerHTML = availableStickers.map(sticker => `
+                <button onclick="addStickerFrame('${sticker}')" style="
+                    font-size: 36px;
+                    background: #F5F5F5;
+                    border: 2px solid transparent;
+                    border-radius: 12px;
+                    padding: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    aspect-ratio: 1;
+                " onmouseover="this.style.borderColor='#3C3C3C'; this.style.transform='scale(1.1)'" onmouseout="this.style.borderColor='transparent'; this.style.transform='scale(1)'">
+                    ${sticker}
+                </button>
+            `).join('');
+            
+            picker.style.display = 'block';
+        }
+
+        // Add sticker frame with selected sticker
+        function addStickerFrame(sticker) {
+            const page = currentJournalPages[currentPageIndex];
+            if (!page) return;
+            
+            const newFrame = {
+                id: `frame_${Date.now()}`,
+                type: 'sticker',
+                x: 50,
+                y: 100,
+                width: 120,
+                height: 120,
+                content: sticker,
+                borderType: null
+            };
+            
+            page.frames.push(newFrame);
+            enterEditMode();
+            renderBookPages();
+            
+            // Close sticker picker
+            const picker = document.getElementById('stickerPicker');
+            if (picker) picker.style.display = 'none';
+        }
+
+        // Enter edit mode
+        function enterEditMode() {
+            isEditMode = true;
+            const indicator = document.getElementById('editModeIndicator');
+            const saveBtn = document.getElementById('savePageButton');
+            
+            if (indicator) indicator.style.display = 'block';
+            if (saveBtn) saveBtn.style.display = 'block';
+        }
+
+        // Exit edit mode
+        function exitEditMode() {
+            isEditMode = false;
+            const indicator = document.getElementById('editModeIndicator');
+            const saveBtn = document.getElementById('savePageButton');
+            
+            if (indicator) indicator.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'none';
+        }
+
+        // Save page changes
+        function savePage() {
+            const page = currentJournalPages[currentPageIndex];
+            if (!page) return;
+            
+            // Find the journal and update it
+            const currentJournal = journalsData.find(j => j.id === currentJournalId);
+            if (currentJournal) {
+                // Save the updated pages to the journal
+                currentJournal.pages = currentJournalPages;
+                
+                // Save to localStorage for persistence
+                try {
+                    localStorage.setItem('journalsData', JSON.stringify(journalsData));
+                    
+                    // Show success message
+                    showSaveSuccess();
+                    
+                    // Exit edit mode
+                    exitEditMode();
+                } catch (e) {
+                    alert('Errore nel salvataggio: ' + e.message);
+                }
+            }
+        }
+
+        // Show save success message
+        function showSaveSuccess() {
+            const message = document.createElement('div');
+            message.textContent = '✅ Salvato!';
+            message.style.cssText = `
+                position: fixed;
+                top: 120px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #4CAF50;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 24px;
+                font-size: 14px;
+                font-weight: 600;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => message.remove(), 300);
+            }, 2000);
         }
 
         // Start dragging frame
@@ -1809,6 +2005,7 @@
             if (!page) return;
             
             page.frames = page.frames.filter(f => f.id !== frameId);
+            enterEditMode();
             renderBookPages();
         }
 
@@ -1819,13 +2016,18 @@
             return page.frames.find(f => f.id === frameId);
         }
 
-        // Close frame selector when clicking outside
+        // Close frame selector and sticker picker when clicking outside
         document.addEventListener('click', function(e) {
             const selector = document.getElementById('frameSelector');
+            const stickerPicker = document.getElementById('stickerPicker');
             const addButton = e.target.closest('button[onclick="toggleFrameSelector()"]');
             
             if (selector && selector.style.display === 'block' && !addButton && !selector.contains(e.target)) {
                 selector.style.display = 'none';
+            }
+            
+            if (stickerPicker && stickerPicker.style.display === 'block' && !stickerPicker.contains(e.target)) {
+                stickerPicker.style.display = 'none';
             }
         });
     </script>
