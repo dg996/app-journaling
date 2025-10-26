@@ -101,7 +101,7 @@ struct JournalCardView: View {
     let journal: Journal
     
     var body: some View {
-        NavigationLink(destination: JournalDetailView(journal: journal)) {
+        NavigationLink(destination: JournalDetailView(journalId: journal.id)) {
             VStack(alignment: .leading, spacing: 0) {
                 // Copertina
                 ZStack {

@@ -11,89 +11,103 @@ struct JournalDetailView: View {
     @EnvironmentObject var journalStore: JournalStore
     @Environment(\.dismiss) var dismiss
     
-    @State var journal: Journal
+    let journalId: UUID
     @State private var showingAddEntry = false
     @State private var showingEditJournal = false
     @State private var currentPageIndex = 0
     
-    init(journal: Journal) {
-        self._journal = State(initialValue: journal)
+    private var journal: Journal? {
+        journalStore.journals.first { $0.id == journalId }
+    }
+    
+    private var journalBinding: Binding<Journal> {
+        Binding(
+            get: { journal ?? Journal(title: "Sconosciuto") },
+            set: { journalStore.updateJournal($0) }
+        )
     }
     
     var body: some View {
-        ZStack {
-            Color.backgroundPrimary
-                .ignoresSafeArea()
-            
-            if journal.entries.isEmpty {
-                // Empty state
-                EmptyEntriesView()
-            } else {
-                // Page viewer with swipe
-                TabView(selection: $currentPageIndex) {
-                    ForEach(Array(journal.entries.enumerated()), id: \.element.id) { index, entry in
-                        JournalPageView(entry: entry, pageNumber: index + 1)
-                            .tag(index)
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .ignoresSafeArea()
-                
-                // Page Indicator
-                VStack {
-                    HStack {
-                        Spacer()
-                        Text("\(currentPageIndex + 1) di \(journal.entries.count)")
-                            .font(AppFonts.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.textSecondary)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.9))
-                            .cornerRadius(20)
-                            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        Spacer()
-                    }
-                    .padding(.top, 20)
+        Group {
+            if let journal = journal {
+                ZStack {
+                    Color.backgroundPrimary
+                        .ignoresSafeArea()
                     
-                    Spacer()
+                    if journal.entries.isEmpty {
+                        // Empty state
+                        EmptyEntriesView()
+                    } else {
+                        // Page viewer with swipe
+                        TabView(selection: $currentPageIndex) {
+                            ForEach(Array(journal.entries.enumerated()), id: \.element.id) { index, entry in
+                                JournalPageView(entry: entry, pageNumber: index + 1)
+                                    .tag(index)
+                            }
+                        }
+                        .tabViewStyle(.page(indexDisplayMode: .never))
+                        .ignoresSafeArea()
+                        
+                        // Page Indicator
+                        VStack {
+                            HStack {
+                                Spacer()
+                                Text("\(currentPageIndex + 1) di \(journal.entries.count)")
+                                    .font(AppFonts.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.textSecondary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Color.white.opacity(0.9))
+                                    .cornerRadius(20)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                Spacer()
+                            }
+                            .padding(.top, 20)
+                            
+                            Spacer()
+                        }
+                    }
+                    
+                    // Pulsante per aggiungere nuova pagina
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            AddEntryButton(showingAddEntry: $showingAddEntry)
+                        }
+                        .padding(.trailing, 24)
+                        .padding(.bottom, 24)
+                    }
                 }
-            }
-            
-            // Pulsante per aggiungere nuova pagina
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    AddEntryButton(showingAddEntry: $showingAddEntry)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text(journal.title)
+                            .font(AppFonts.headline)
+                            .foregroundColor(.textPrimary)
+                    }
+                    
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            showingEditJournal = true
+                        }) {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.charcoalGray)
+                        }
+                    }
                 }
-                .padding(.trailing, 24)
-                .padding(.bottom, 24)
-            }
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(journal.title)
-                    .font(AppFonts.headline)
-                    .foregroundColor(.textPrimary)
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
-                    showingEditJournal = true
-                }) {
-                    Image(systemName: "pencil.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(.charcoalGray)
+                .sheet(isPresented: $showingAddEntry) {
+                    JournalEntryEditorView(journal: journal, entry: nil)
                 }
+                .sheet(isPresented: $showingEditJournal) {
+                    EditJournalView(journal: journalBinding)
+                }
+            } else {
+                Text("Diario non trovato")
+                    .foregroundColor(.textSecondary)
             }
-        }
-        .sheet(isPresented: $showingAddEntry) {
-            JournalEntryEditorView(journal: journal, entry: nil)
-        }
-        .sheet(isPresented: $showingEditJournal) {
-            EditJournalView(journal: $journal)
         }
     }
 }

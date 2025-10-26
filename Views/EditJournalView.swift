@@ -140,13 +140,9 @@ struct EditJournalView: View {
     }
     
     private func saveChanges() {
-        var updatedJournal = journal
-        updatedJournal.title = editedTitle
-        updatedJournal.coverColor = editedCoverColor
-        updatedJournal.lastModifiedDate = Date()
-        
-        journalStore.updateJournal(updatedJournal)
-        journal = updatedJournal
+        journal.title = editedTitle
+        journal.coverColor = editedCoverColor
+        journal.lastModifiedDate = Date()
         dismiss()
     }
     

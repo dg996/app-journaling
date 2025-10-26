@@ -818,30 +818,26 @@
         }
 
         function getHomeContent() {
+            const journals = [
+                journalsData['Il Mio Primo Diario'],
+                journalsData['Viaggi 2025'],
+                journalsData['Ricordi Preziosi']
+            ];
+            
+            const journalCards = journals.map(journal => `
+                <div class="journal-card" onclick="openJournalDetail('${journal.title}', '${journal.color}', ${journal.entries})">
+                    <div class="journal-cover cover-${journal.color}"></div>
+                    <div class="journal-info">
+                        <h3>${journal.title}</h3>
+                        <p>${journal.entries} ${journal.entries === 1 ? 'pagina' : 'pagine'}</p>
+                    </div>
+                </div>
+            `).join('');
+            
             return `
                 <div class="home-background"></div>
                 <div class="journals-grid" style="position: relative; z-index: 1;">
-                    <div class="journal-card" onclick="openJournalDetail('Il Mio Primo Diario', 'beige', 3)">
-                        <div class="journal-cover cover-beige"></div>
-                        <div class="journal-info">
-                            <h3>Il Mio Primo Diario</h3>
-                            <p>3 pagine</p>
-                        </div>
-                    </div>
-                    <div class="journal-card" onclick="openJournalDetail('Viaggi 2025', 'sage', 0)">
-                        <div class="journal-cover cover-sage"></div>
-                        <div class="journal-info">
-                            <h3>Viaggi 2025</h3>
-                            <p>0 pagine</p>
-                        </div>
-                    </div>
-                    <div class="journal-card" onclick="openJournalDetail('Ricordi Preziosi', 'lavender', 1)">
-                        <div class="journal-cover cover-lavender"></div>
-                        <div class="journal-info">
-                            <h3>Ricordi Preziosi</h3>
-                            <p>1 pagina</p>
-                        </div>
-                    </div>
+                    ${journalCards}
                 </div>
             `;
         }
@@ -1403,6 +1399,13 @@
             }
         }
 
+        // Store journals data
+        let journalsData = {
+            'Il Mio Primo Diario': { title: 'Il Mio Primo Diario', color: 'beige', entries: 3 },
+            'Viaggi 2025': { title: 'Viaggi 2025', color: 'sage', entries: 0 },
+            'Ricordi Preziosi': { title: 'Ricordi Preziosi', color: 'lavender', entries: 1 }
+        };
+
         function saveJournalChanges() {
             const newTitle = document.getElementById('journalTitleInput').value;
             
@@ -1411,13 +1414,22 @@
                 return;
             }
             
-            // Update current view
+            // Update stored data
+            const oldTitle = currentJournalTitle;
+            if (journalsData[oldTitle]) {
+                journalsData[oldTitle].title = newTitle;
+                journalsData[oldTitle].color = currentJournalColor;
+            }
+            
+            // Update current view title
             const titleElement = document.getElementById('journalTitle');
             if (titleElement) {
                 titleElement.textContent = newTitle;
             }
             
-            // Update in home (would need to persist this in a real app)
+            // Update home content to reflect changes
+            updateHomeContent();
+            
             currentJournalTitle = newTitle;
             
             closeEditModal();
@@ -1443,6 +1455,11 @@
             setTimeout(() => {
                 successMsg.remove();
             }, 2000);
+        }
+
+        function updateHomeContent() {
+            // Update the home content with new journal data
+            sections.home.content = getHomeContent();
         }
     </script>
     
