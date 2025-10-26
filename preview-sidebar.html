@@ -749,12 +749,20 @@
 
         // Initialize with bookshelf background and home content
         document.addEventListener('DOMContentLoaded', function() {
-            changeBackground();
-            // Load home content dynamically
+            // Initialize background
+            const selector = document.getElementById('backgroundSelector');
+            if (selector) {
+                changeBackground();
+            }
+            
+            // ALWAYS load home content on startup
             const contentBody = document.getElementById('contentBody');
-            if (contentBody && !contentBody.innerHTML.trim()) {
+            if (contentBody) {
                 contentBody.innerHTML = getHomeContent();
             }
+            
+            // Load journals from storage
+            loadJournalsFromStorage();
         });
 
         // Background Picker in Settings
@@ -1704,10 +1712,7 @@
             }
         }
 
-        // Initialize localStorage on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadJournalsFromStorage();
-        });
+        // Note: Initialization moved to main DOMContentLoaded above to avoid duplicates
 
         // ===== FRAME MANAGEMENT FUNCTIONS =====
         
