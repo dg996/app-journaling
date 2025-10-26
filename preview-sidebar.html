@@ -1026,8 +1026,15 @@
             // Store current journal ID for editing
             window.currentViewingJournalId = journalId;
             
-            // Generate journal pages with content
-            currentJournalPages = generateJournalPages(journal.entries, journal.color);
+            // Load saved pages or generate new ones
+            if (journal.pages && journal.pages.length > 0) {
+                // Load saved pages
+                currentJournalPages = journal.pages;
+            } else {
+                // Generate new empty pages
+                currentJournalPages = generateJournalPages(journal.entries, journal.color);
+                journal.pages = currentJournalPages;
+            }
             currentPageIndex = 0;
             
             // Check if empty
