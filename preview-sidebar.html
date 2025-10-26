@@ -1081,12 +1081,59 @@
                         👈 Swipe per navigare 👉
                     </div>
                     
-                    <!-- Add Page Button -->
-                    <button onclick="openEntryEditor('${journal.title}')" style="position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: #3C3C3C; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 100; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <!-- Add Frame Button -->
+                    <button onclick="toggleFrameSelector()" style="position: fixed; bottom: 24px; right: 50%; transform: translateX(50%); width: 56px; height: 56px; border-radius: 50%; background: #3C3C3C; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 100; transition: all 0.3s;" onmouseover="this.style.transform='translateX(50%) scale(1.1)'" onmouseout="this.style.transform='translateX(50%) scale(1)'">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
                         </svg>
                     </button>
+                    
+                    <!-- Frame Selector Sheet -->
+                    <div id="frameSelector" style="position: fixed; bottom: -300px; left: 0; right: 0; height: 250px; background: white; border-radius: 24px 24px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.2); transition: bottom 0.3s ease; z-index: 200; padding: 24px;">
+                        <div style="width: 40px; height: 4px; background: #D0D0D0; border-radius: 2px; margin: 0 auto 24px;"></div>
+                        
+                        <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #3C3C3C;">Aggiungi Frame</h3>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                            <button onclick="addFrame('text')" class="frame-option">
+                                <div style="font-size: 32px; margin-bottom: 8px;">📝</div>
+                                <div style="font-size: 12px; color: #787878;">Testo</div>
+                            </button>
+                            
+                            <button onclick="addFrame('photo')" class="frame-option">
+                                <div style="font-size: 32px; margin-bottom: 8px;">📸</div>
+                                <div style="font-size: 12px; color: #787878;">Foto</div>
+                            </button>
+                            
+                            <button onclick="addFrame('sticker')" class="frame-option">
+                                <div style="font-size: 32px; margin-bottom: 8px;">✨</div>
+                                <div style="font-size: 12px; color: #787878;">Sticker</div>
+                            </button>
+                            
+                            <button onclick="addFrame('shape')" class="frame-option">
+                                <div style="font-size: 32px; margin-bottom: 8px;">⬜</div>
+                                <div style="font-size: 12px; color: #787878;">Forma</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <style>
+                        .frame-option {
+                            background: #F5F5F5;
+                            border: 2px solid transparent;
+                            border-radius: 12px;
+                            padding: 16px 8px;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                        }
+                        .frame-option:hover {
+                            border-color: #3C3C3C;
+                            transform: translateY(-2px);
+                        }
+                    </style>
                 </div>
                 
                 <style>
@@ -1102,31 +1149,29 @@
             setupSwipeListeners();
         }
 
-        // Generate journal pages with realistic content
+        // Generate journal pages - NOW EMPTY with customizable frames
         function generateJournalPages(count, color) {
             const pages = [];
-            const dates = ['26 Ottobre 2025', '25 Ottobre 2025', '24 Ottobre 2025', '23 Ottobre 2025', '22 Ottobre 2025'];
-            const texts = [
-                'Oggi è stata una giornata meravigliosa! Ho passato del tempo con gli amici e abbiamo fatto una passeggiata nel parco. Il sole splendeva e mi sono sentita così grata per questi momenti semplici ma preziosi.',
-                'Riflessioni sulla mia crescita personale. Sto imparando ad essere più paziente con me stesso e ad accettare che il progresso non è sempre lineare. Ogni piccolo passo conta.',
-                'Un momento di gratitudine per tutte le piccole cose che rendono speciale ogni giorno. La tazza di caffè al mattino, il sorriso di uno sconosciuto, il tramonto dalla finestra.',
-                'Oggi ho iniziato un nuovo progetto che mi entusiasma molto. Mi sento piena di energia e motivazione. Non vedo l\'ora di vedere dove mi porterà questo percorso!',
-                'Giornata tranquilla dedicata alla lettura e alla riflessione. A volte è importante rallentare e prendersi del tempo per se stessi.'
-            ];
+            const today = new Date();
             
             for (let i = 0; i < count; i++) {
+                const pageDate = new Date(today);
+                pageDate.setDate(today.getDate() - i);
+                
                 pages.push({
-                    id: i,
-                    date: dates[i % dates.length],
-                    text: texts[i % texts.length],
-                    hasPhoto: i % 2 === 0,
-                    stickers: i % 3 === 0 ? ['⭐', '💖'] : i % 2 === 0 ? ['🌸'] : [],
-                    frame: i % 4 === 0 ? 'polaroid' : i % 3 === 0 ? 'vintage' : 'none',
+                    id: `page_${Date.now()}_${i}`,
+                    date: formatPageDate(pageDate),
+                    frames: [], // Empty - user will add frames
                     color: color
                 });
             }
             
             return pages;
+        }
+
+        function formatPageDate(date) {
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return date.toLocaleDateString('it-IT', options).toUpperCase();
         }
 
         // Render book pages (single page view only)
@@ -1147,69 +1192,111 @@
             updateSwipeHint();
         }
 
-        // Create HTML for a single page (full screen)
+        // Create HTML for a single page - NEW: Empty canvas with grid and frames
         function createPageHTML(page) {
-            const frameStyles = {
-                'none': '',
-                'polaroid': 'border: 14px solid #F5F5DC; border-bottom: 50px solid #F5F5DC;',
-                'vintage': 'border: 5px solid #C9A580; box-shadow: inset 0 0 25px rgba(201, 165, 128, 0.3);',
-                'simple': 'border: 2px solid #3C3C3C;'
-            };
+            const framesHTML = page.frames.map(frame => createFrameHTML(frame)).join('');
             
             return `
-                <div style="
+                <div class="journal-page" data-page-id="${page.id}" style="
                     width: 100%;
                     max-width: 480px;
-                    height: calc(100vh - 140px);
-                    max-height: 720px;
+                    height: calc(100vh - 180px);
+                    max-height: 680px;
                     background: white;
                     box-shadow: 0 8px 32px rgba(0,0,0,0.12);
                     border-radius: 16px;
-                    padding: 40px 28px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 20px;
                     position: relative;
-                    overflow: auto;
-                    ${frameStyles[page.frame] || ''}
+                    overflow: hidden;
+                    background-image: 
+                        linear-gradient(rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px);
+                    background-size: 20px 20px;
                 ">
                     <!-- Date Header -->
-                    <div style="font-size: 13px; color: #A8A8A8; text-align: center; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase;">
+                    <div style="position: absolute; top: 20px; left: 0; right: 0; text-align: center; font-size: 11px; color: #A8A8A8; font-weight: 600; letter-spacing: 1px; z-index: 1; pointer-events: none;">
                         ${page.date}
                     </div>
                     
-                    <!-- Photo if present -->
-                    ${page.hasPhoto ? `
-                        <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #E8DDD3 0%, #D4C4B8 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                            <div style="font-size: 64px; opacity: 0.6;">📸</div>
-                            ${page.stickers.length > 0 ? `
-                                <div style="position: absolute; top: 12px; right: 12px; font-size: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
-                                    ${page.stickers[0]}
-                                </div>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                    
-                    <!-- Text Content -->
-                    <div style="flex: 1; font-family: 'Georgia', serif; font-size: 16px; line-height: 1.9; color: #3C3C3C; text-align: justify; overflow-y: auto; padding-right: 4px;">
-                        ${page.text}
+                    <!-- Frames Container -->
+                    <div class="frames-container" style="position: absolute; top: 50px; left: 0; right: 0; bottom: 40px; padding: 20px;">
+                        ${framesHTML || '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #D0D0D0; font-size: 14px; pointer-events: none;">Tocca + per iniziare</div>'}
                     </div>
                     
-                    <!-- Stickers at bottom -->
-                    ${page.stickers.length > 1 ? `
-                        <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 12px;">
-                            ${page.stickers.slice(1).map(sticker => `
-                                <span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${sticker}</span>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    
                     <!-- Page Number -->
-                    <div style="text-align: center; font-size: 12px; color: #C8C8C8; margin-top: 8px; font-weight: 500;">
-                        Pagina ${page.id + 1}
+                    <div style="position: absolute; bottom: 15px; left: 0; right: 0; text-align: center; font-size: 10px; color: #D0D0D0; font-weight: 500; pointer-events: none;">
+                        Pagina ${currentPageIndex + 1}
                     </div>
                 </div>
             `;
+        }
+
+        // Create HTML for a single frame
+        function createFrameHTML(frame) {
+            const frameContent = getFrameContent(frame);
+            
+            return `
+                <div class="journal-frame" data-frame-id="${frame.id}" style="
+                    position: absolute;
+                    left: ${frame.x}px;
+                    top: ${frame.y}px;
+                    width: ${frame.width}px;
+                    height: ${frame.height}px;
+                    border: 2px solid #3C3C3C;
+                    border-radius: 8px;
+                    background: white;
+                    cursor: move;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    overflow: hidden;
+                " onmousedown="startDrag(event, '${frame.id}')" ontouchstart="startDrag(event, '${frame.id}')">
+                    ${frameContent}
+                    
+                    <!-- Resize Handle -->
+                    <div class="resize-handle" style="
+                        position: absolute;
+                        bottom: 0;
+                        right: 0;
+                        width: 16px;
+                        height: 16px;
+                        background: #3C3C3C;
+                        border-radius: 8px 0 8px 0;
+                        cursor: se-resize;
+                    " onmousedown="startResize(event, '${frame.id}')" ontouchstart="startResize(event, '${frame.id}')"></div>
+                    
+                    <!-- Delete Button -->
+                    <button onclick="deleteFrame('${frame.id}')" style="
+                        position: absolute;
+                        top: 4px;
+                        right: 4px;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        border: none;
+                        background: rgba(60, 60, 60, 0.8);
+                        color: white;
+                        font-size: 12px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        opacity: 0.6;
+                        transition: opacity 0.2s;
+                    " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">×</button>
+                </div>
+            `;
+        }
+
+        // Get frame content based on type
+        function getFrameContent(frame) {
+            switch(frame.type) {
+                case 'text':
+                    return `<div contenteditable="true" style="width: 100%; height: 100%; padding: 12px; font-size: 14px; font-family: 'Georgia', serif; outline: none; overflow-y: auto;" placeholder="Scrivi qui...">${frame.content || ''}</div>`;
+                case 'photo':
+                    return `<div style="width: 100%; height: 100%; background: linear-gradient(135deg, #E8DDD3 0%, #D4C4B8 100%); display: flex; align-items: center; justify-content: center; font-size: 48px; color: rgba(255,255,255,0.7);">📸</div>`;
+                case 'sticker':
+                    return `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: ${Math.min(frame.width, frame.height) * 0.7}px;">${frame.content || '⭐'}</div>`;
+                default:
+                    return '';
+            }
         }
 
         // Navigation functions
@@ -1484,6 +1571,183 @@
             // Update the home content with new journal data
             sections.home.content = getHomeContent();
         }
+
+        // ===== FRAME MANAGEMENT FUNCTIONS =====
+        
+        let draggedFrameId = null;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let frameStartX = 0;
+        let frameStartY = 0;
+        let isResizing = false;
+        let resizedFrameId = null;
+        let resizeStartX = 0;
+        let resizeStartY = 0;
+        let frameStartWidth = 0;
+        let frameStartHeight = 0;
+
+        // Toggle frame selector sheet
+        function toggleFrameSelector() {
+            const selector = document.getElementById('frameSelector');
+            if (selector) {
+                if (selector.style.bottom === '0px') {
+                    selector.style.bottom = '-300px';
+                } else {
+                    selector.style.bottom = '0px';
+                }
+            }
+        }
+
+        // Add frame to current page
+        function addFrame(type) {
+            const page = currentJournalPages[currentPageIndex];
+            if (!page) return;
+            
+            const newFrame = {
+                id: `frame_${Date.now()}`,
+                type: type,
+                x: 50,
+                y: 100,
+                width: 200,
+                height: 150,
+                content: type === 'text' ? '' : type === 'sticker' ? '⭐' : ''
+            };
+            
+            page.frames.push(newFrame);
+            renderBookPages();
+            toggleFrameSelector();
+        }
+
+        // Start dragging frame
+        function startDrag(e, frameId) {
+            if (e.target.className && e.target.className.includes('resize-handle')) return;
+            if (e.target.tagName === 'BUTTON') return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            draggedFrameId = frameId;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            dragStartX = clientX;
+            dragStartY = clientY;
+            
+            const frame = findFrame(frameId);
+            if (frame) {
+                frameStartX = frame.x;
+                frameStartY = frame.y;
+            }
+            
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchmove', onDrag);
+            document.addEventListener('touchend', stopDrag);
+        }
+
+        function onDrag(e) {
+            if (!draggedFrameId) return;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const deltaX = clientX - dragStartX;
+            const deltaY = clientY - dragStartY;
+            
+            const frame = findFrame(draggedFrameId);
+            if (frame) {
+                frame.x = Math.max(0, frameStartX + deltaX);
+                frame.y = Math.max(0, frameStartY + deltaY);
+                renderBookPages();
+            }
+        }
+
+        function stopDrag() {
+            draggedFrameId = null;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchmove', onDrag);
+            document.removeEventListener('touchend', stopDrag);
+        }
+
+        // Start resizing frame
+        function startResize(e, frameId) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isResizing = true;
+            resizedFrameId = frameId;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            resizeStartX = clientX;
+            resizeStartY = clientY;
+            
+            const frame = findFrame(frameId);
+            if (frame) {
+                frameStartWidth = frame.width;
+                frameStartHeight = frame.height;
+            }
+            
+            document.addEventListener('mousemove', onResize);
+            document.addEventListener('mouseup', stopResize);
+            document.addEventListener('touchmove', onResize);
+            document.addEventListener('touchend', stopResize);
+        }
+
+        function onResize(e) {
+            if (!isResizing || !resizedFrameId) return;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const deltaX = clientX - resizeStartX;
+            const deltaY = clientY - resizeStartY;
+            
+            const frame = findFrame(resizedFrameId);
+            if (frame) {
+                frame.width = Math.max(80, frameStartWidth + deltaX);
+                frame.height = Math.max(60, frameStartHeight + deltaY);
+                renderBookPages();
+            }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            resizedFrameId = null;
+            document.removeEventListener('mousemove', onResize);
+            document.removeEventListener('mouseup', stopResize);
+            document.removeEventListener('touchmove', onResize);
+            document.removeEventListener('touchend', stopResize);
+        }
+
+        // Delete frame
+        function deleteFrame(frameId) {
+            const page = currentJournalPages[currentPageIndex];
+            if (!page) return;
+            
+            page.frames = page.frames.filter(f => f.id !== frameId);
+            renderBookPages();
+        }
+
+        // Find frame by ID
+        function findFrame(frameId) {
+            const page = currentJournalPages[currentPageIndex];
+            if (!page) return null;
+            return page.frames.find(f => f.id === frameId);
+        }
+
+        // Close frame selector when clicking outside
+        document.addEventListener('click', function(e) {
+            const selector = document.getElementById('frameSelector');
+            const addButton = e.target.closest('button[onclick="toggleFrameSelector()"]');
+            
+            if (selector && selector.style.bottom === '0px' && !addButton && !selector.contains(e.target)) {
+                selector.style.bottom = '-300px';
+            }
+        });
     </script>
     
     <style>
