@@ -817,6 +817,13 @@
             }, 300);
         }
 
+        // Store journals data with IDs (MUST be before getHomeContent!)
+        let journalsData = [
+            { id: 'journal1', title: 'Il Mio Primo Diario', color: 'beige', entries: 3 },
+            { id: 'journal2', title: 'Viaggi 2025', color: 'sage', entries: 0 },
+            { id: 'journal3', title: 'Ricordi Preziosi', color: 'lavender', entries: 1 }
+        ];
+
         function getHomeContent() {
             const journalCards = journalsData.map(journal => `
                 <div class="journal-card" onclick="openJournalDetail('${journal.id}')">
@@ -1402,13 +1409,6 @@
                 modal.remove();
             }
         }
-
-        // Store journals data with IDs
-        let journalsData = [
-            { id: 'journal1', title: 'Il Mio Primo Diario', color: 'beige', entries: 3 },
-            { id: 'journal2', title: 'Viaggi 2025', color: 'sage', entries: 0 },
-            { id: 'journal3', title: 'Ricordi Preziosi', color: 'lavender', entries: 1 }
-        ];
 
         function saveJournalChanges() {
             const newTitle = document.getElementById('journalTitleInput').value;
