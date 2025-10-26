@@ -1030,7 +1030,14 @@
                         <path d="M12 16L6 10L12 4" stroke="#3C3C3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <span>${title}</span>
+                <span id="journalTitle">${title}</span>
+                <button onclick="editJournal('${title}', '${color}')" style="background: transparent; border: none; padding: 8px; margin-left: 12px; cursor: pointer; display: inline-flex; align-items: center;">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="9" fill="#3C3C3C"/>
+                        <path d="M10 6L10 14M6 10L14 10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M13 7L7 13M7 7L13 13" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+                    </svg>
+                </button>
             `;
             
             // Generate journal pages with content
@@ -1270,7 +1277,195 @@
         function openEntryEditor(title) {
             alert(`Opening editor for: ${title}\n\n(Full entry editor coming soon! 🎨)`);
         }
+
+        // Edit Journal (Title & Cover)
+        let currentJournalTitle = '';
+        let currentJournalColor = '';
+
+        function editJournal(title, color) {
+            currentJournalTitle = title;
+            currentJournalColor = color;
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.id = 'editJournalModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                animation: fadeIn 0.2s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                    <h2 style="font-size: 20px; font-weight: 600; color: #3C3C3C; margin: 0 0 24px 0; text-align: center;">
+                        Modifica Diario
+                    </h2>
+                    
+                    <!-- Preview -->
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div style="font-size: 12px; color: #787878; margin-bottom: 12px;">Anteprima</div>
+                        <div id="coverPreview" class="journal-cover cover-${color}" style="width: 140px; height: 180px; margin: 0 auto; box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; position: relative;">
+                            <span id="previewTitle" style="font-size: 16px; font-weight: 600; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3); padding: 12px; text-align: center;">
+                                ${title}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Title Input -->
+                    <div style="margin-bottom: 24px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #3C3C3C; margin-bottom: 8px;">
+                            Titolo del Diario
+                        </label>
+                        <input 
+                            type="text" 
+                            id="journalTitleInput" 
+                            value="${title}" 
+                            placeholder="Es. Il Mio Diario"
+                            style="width: 100%; padding: 12px; border: 1px solid #E0E0E0; border-radius: 8px; font-size: 15px; font-family: inherit;"
+                            oninput="updatePreview()"
+                        />
+                    </div>
+                    
+                    <!-- Color Selection -->
+                    <div style="margin-bottom: 32px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #3C3C3C; margin-bottom: 12px;">
+                            Colore della Copertina
+                        </label>
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;">
+                            ${generateColorOptions(color)}
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div style="display: flex; gap: 12px;">
+                        <button onclick="closeEditModal()" style="flex: 1; padding: 14px; border: 1px solid #E0E0E0; border-radius: 12px; background: white; color: #787878; font-size: 15px; font-weight: 600; cursor: pointer;">
+                            Annulla
+                        </button>
+                        <button onclick="saveJournalChanges()" style="flex: 1; padding: 14px; border: none; border-radius: 12px; background: #3C3C3C; color: white; font-size: 15px; font-weight: 600; cursor: pointer;">
+                            Salva
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function generateColorOptions(selectedColor) {
+            const colors = [
+                { name: 'beige', label: 'Beige', class: 'cover-beige' },
+                { name: 'sage', label: 'Sage', class: 'cover-sage' },
+                { name: 'rose', label: 'Rose', class: 'cover-rose' },
+                { name: 'lavender', label: 'Lavender', class: 'cover-lavender' },
+                { name: 'blue', label: 'Blue', class: 'cover-blue' }
+            ];
+            
+            return colors.map(color => `
+                <div onclick="selectCoverColor('${color.name}')" style="cursor: pointer; text-align: center;">
+                    <div class="${color.class}" style="width: 50px; height: 50px; border-radius: 50%; margin: 0 auto 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); ${selectedColor === color.name ? 'border: 3px solid #3C3C3C;' : ''}"></div>
+                    <div style="font-size: 11px; color: #787878;">${color.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectCoverColor(color) {
+            currentJournalColor = color;
+            
+            // Update all color options
+            const modal = document.getElementById('editJournalModal');
+            const colorGrid = modal.querySelector('[style*="grid-template-columns"]');
+            colorGrid.innerHTML = generateColorOptions(color);
+            
+            // Update preview
+            const preview = document.getElementById('coverPreview');
+            preview.className = `journal-cover cover-${color}`;
+            preview.style.cssText = 'width: 140px; height: 180px; margin: 0 auto; box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; position: relative;';
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('journalTitleInput');
+            const preview = document.getElementById('previewTitle');
+            preview.textContent = input.value || 'Il Mio Diario';
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editJournalModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function saveJournalChanges() {
+            const newTitle = document.getElementById('journalTitleInput').value;
+            
+            if (!newTitle.trim()) {
+                alert('Il titolo non può essere vuoto!');
+                return;
+            }
+            
+            // Update current view
+            const titleElement = document.getElementById('journalTitle');
+            if (titleElement) {
+                titleElement.textContent = newTitle;
+            }
+            
+            // Update in home (would need to persist this in a real app)
+            currentJournalTitle = newTitle;
+            
+            closeEditModal();
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.style.cssText = `
+                position: fixed;
+                top: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #3C3C3C;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 24px;
+                font-size: 14px;
+                z-index: 2000;
+                animation: slideDown 0.3s ease;
+            `;
+            successMsg.textContent = '✓ Diario aggiornato!';
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                successMsg.remove();
+            }, 2000);
+        }
     </script>
+    
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        .cover-rose {
+            background: linear-gradient(135deg, #EBDCE1 0%, #D4B5BE 100%);
+        }
+        
+        .cover-blue {
+            background: linear-gradient(135deg, #E1EBF5 0%, #B8D4EC 100%);
+        }
+    </style>
+
 </body>
 </html>
 

@@ -11,9 +11,14 @@ struct JournalDetailView: View {
     @EnvironmentObject var journalStore: JournalStore
     @Environment(\.dismiss) var dismiss
     
-    let journal: Journal
+    @State var journal: Journal
     @State private var showingAddEntry = false
+    @State private var showingEditJournal = false
     @State private var currentPageIndex = 0
+    
+    init(journal: Journal) {
+        self._journal = State(initialValue: journal)
+    }
     
     var body: some View {
         ZStack {
@@ -73,9 +78,22 @@ struct JournalDetailView: View {
                     .font(AppFonts.headline)
                     .foregroundColor(.textPrimary)
             }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    showingEditJournal = true
+                }) {
+                    Image(systemName: "pencil.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.charcoalGray)
+                }
+            }
         }
         .sheet(isPresented: $showingAddEntry) {
             JournalEntryEditorView(journal: journal, entry: nil)
+        }
+        .sheet(isPresented: $showingEditJournal) {
+            EditJournalView(journal: $journal)
         }
     }
 }
